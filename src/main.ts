@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import toml from 'toml'
 
-const {handleEvent} = require('./handleEvent')
+const {handleEvent} = require('./handler')
 
 const CONFIG_PATH = '.github/userlist.toml'
 

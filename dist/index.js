@@ -42,7 +42,7 @@ const fs = __importStar(__nccwpck_require__(5747));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const toml_1 = __importDefault(__nccwpck_require__(4920));
-const { handleEvent } = __nccwpck_require__(9684);
+const { handleEvent } = __nccwpck_require__(9943);
 const CONFIG_PATH = '.github/userlist.toml';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -12425,10 +12425,10 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9684:
+/***/ 9943:
 /***/ ((module) => {
 
-module.exports = eval("require")("./handleEvent");
+module.exports = eval("require")("./handler");
 
 
 /***/ }),

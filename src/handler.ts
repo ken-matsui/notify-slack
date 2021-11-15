@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import Slack from './slack'
 import {parseMentionComment} from './utils'
 
@@ -27,7 +28,7 @@ async function handlePullRequestEvent(
   } else if (action === 'closed' && payload['pull_request']['merged']) {
     await slack.postMessage(pullRequestAuthor, payload, 'merged', config)
   } else {
-    console.log(`${action} action was not hooked`)
+    core.info(`${action} action was not hooked`)
   }
 
   return {message: 'Pull request event processing has been completed'}
@@ -77,7 +78,7 @@ async function handleIssueEvent(
       await slack.postMessage(mentionUser, payload, 'mentionComment', config)
     }
   } else {
-    console.log(`${action} action was not hooked`)
+    core.info(`${action} action was not hooked`)
   }
 
   return {message: 'Issue event processing has been completed'}
@@ -107,6 +108,6 @@ export async function handleEvent(
       console.error(err)
     })
   }
-  console.log(`event of type ${githubEvent} was ignored.`)
+  core.info(`event of type ${githubEvent} was ignored.`)
   return {message: null}
 }

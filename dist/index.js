@@ -14,6 +14,25 @@ module.exports = JSON.parse('{"name":"@slack/web-api","version":"6.5.0","descrip
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -28,6 +47,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleEvent = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 const slack_1 = __importDefault(__nccwpck_require__(568));
 const utils_1 = __nccwpck_require__(918);
 function handlePullRequestEvent(payload, slackApiToken, config) {
@@ -48,7 +68,7 @@ function handlePullRequestEvent(payload, slackApiToken, config) {
             yield slack.postMessage(pullRequestAuthor, payload, 'merged', config);
         }
         else {
-            console.log(`${action} action was not hooked`);
+            core.info(`${action} action was not hooked`);
         }
         return { message: 'Pull request event processing has been completed' };
     });
@@ -83,7 +103,7 @@ function handleIssueEvent(payload, slackApiToken, config) {
             }
         }
         else {
-            console.log(`${action} action was not hooked`);
+            core.info(`${action} action was not hooked`);
         }
         return { message: 'Issue event processing has been completed' };
     });
@@ -106,7 +126,7 @@ function handleEvent(githubEvent, payload, slackApiToken, config) {
                 console.error(err);
             });
         }
-        console.log(`event of type ${githubEvent} was ignored.`);
+        core.info(`event of type ${githubEvent} was ignored.`);
         return { message: null };
     });
 }
@@ -152,11 +172,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const fs = __importStar(__nccwpck_require__(5747));
 const core = __importStar(__nccwpck_require__(2186));
+const fs = __importStar(__nccwpck_require__(5747));
 const github = __importStar(__nccwpck_require__(5438));
+const handler_1 = __nccwpck_require__(1201);
 const toml_1 = __importDefault(__nccwpck_require__(4920));
-const { handleEvent } = __nccwpck_require__(1201);
 const CONFIG_PATH = '.github/userlist.toml';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -166,9 +186,9 @@ function run() {
                 core.warning(`The detected event type is not supported: '${eventType}'`);
                 return;
             }
-            const slackApiToken = core.getInput('slack_api_token');
+            const slackApiToken = core.getInput('slack_oauth_access_token');
             const config = getConfig();
-            yield handleEvent(eventType, github.context.payload, slackApiToken, config);
+            yield (0, handler_1.handleEvent)(eventType, github.context.payload, slackApiToken, config);
         }
         catch (error) {
             if (error instanceof Error)
@@ -205,6 +225,25 @@ run();
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -216,6 +255,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const web_api_1 = __nccwpck_require__(431);
+const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
 class Slack {
     constructor(token) {
@@ -265,13 +305,13 @@ class Slack {
     postMessage(githubUserId, payload, type, config) {
         return __awaiter(this, void 0, void 0, function* () {
             const attachment = this.createBaseAttachment(payload, type);
-            console.log('attachment:', JSON.stringify(attachment));
+            core.info(`attachment: ${JSON.stringify(attachment)}`);
             const slackUserId = (0, utils_1.getSlackUserId)(githubUserId, config['users']);
             if (slackUserId === undefined) {
-                console.log(`target user ${githubUserId} was not found`);
+                core.info(`target user ${githubUserId} was not found`);
             }
             else {
-                console.log(`target user ${githubUserId} was found: ${slackUserId}`);
+                core.info(`target user ${githubUserId} was found: ${slackUserId}`);
                 const [text, status] = this.createText(payload, type);
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
                 yield this.web.chat.postMessage({
@@ -352,8 +392,7 @@ class Slack {
             color: Slack.createAttachmentColor(type, payload),
             author_name: user['login'],
             author_icon: user['avatar_url'],
-            title: Slack.createAttachmentTitlePrefix(type, payload) +
-                `${this.prNumber} ${event['title']}`,
+            title: `${Slack.createAttachmentTitlePrefix(type, payload)}${this.prNumber} ${event['title']}`,
             title_link: isCommentType ? comment['html_url'] : event['html_url'],
             text: isCommentType ? comment.body : '',
             image_url: isCommentType ? Slack.getImageURL(comment.body) : '',

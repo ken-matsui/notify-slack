@@ -1,4 +1,5 @@
 import {WebClient} from '@slack/web-api'
+import * as core from '@actions/core'
 import {getSlackUserId, toOxfordComma} from './utils'
 
 export default class Slack {
@@ -63,13 +64,13 @@ export default class Slack {
     config: any
   ) {
     const attachment = this.createBaseAttachment(payload, type)
-    console.log('attachment:', JSON.stringify(attachment))
+    core.info(`attachment: ${JSON.stringify(attachment)}`)
 
     const slackUserId = getSlackUserId(githubUserId, config['users'])
     if (slackUserId === undefined) {
-      console.log(`target user ${githubUserId} was not found`)
+      core.info(`target user ${githubUserId} was not found`)
     } else {
-      console.log(`target user ${githubUserId} was found: ${slackUserId}`)
+      core.info(`target user ${githubUserId} was found: ${slackUserId}`)
       const [text, status] = this.createText(payload, type)
       const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
 
@@ -160,9 +161,9 @@ export default class Slack {
       color: Slack.createAttachmentColor(type, payload),
       author_name: user['login'],
       author_icon: user['avatar_url'],
-      title:
-        Slack.createAttachmentTitlePrefix(type, payload) +
-        `${this.prNumber} ${event['title']}`,
+      title: `${Slack.createAttachmentTitlePrefix(type, payload)}${
+        this.prNumber
+      } ${event['title']}`,
       title_link: isCommentType ? comment['html_url'] : event['html_url'],
       text: isCommentType ? comment.body : '',
       image_url: isCommentType ? Slack.getImageURL(comment.body) : '', // TODO: remove parsed image url from comment.body

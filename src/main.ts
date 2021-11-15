@@ -1,9 +1,8 @@
-import * as fs from 'fs'
 import * as core from '@actions/core'
+import * as fs from 'fs'
 import * as github from '@actions/github'
+import {handleEvent} from './handler'
 import toml from 'toml'
-
-const {handleEvent} = require('./handler')
 
 const CONFIG_PATH = '.github/userlist.toml'
 
@@ -15,7 +14,7 @@ async function run(): Promise<void> {
       return
     }
 
-    const slackApiToken = core.getInput('slack_api_token')
+    const slackApiToken = core.getInput('slack_oauth_access_token')
     const config = getConfig()
 
     await handleEvent(eventType, github.context.payload, slackApiToken, config)

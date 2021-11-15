@@ -2,9 +2,9 @@ name: 'Org Notify'
 description: 'Maintains various notifications on an organization'
 author: 'ken-matsui'
 inputs:
-  slack_api_token:
+  slack_oauth_access_token:
     required: true
-    description: 'Slack API Token'
+    description: 'Slack OAuth Access Token'
 runs:
   using: 'node12'
   main: 'dist/index.js'

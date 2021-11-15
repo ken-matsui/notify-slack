@@ -1,24 +1,69 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+## Description
 
-# Create a JavaScript Action using TypeScript
+Reviewers
+* requested review
+* pr & issue mention
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+Developers
+* review
+  * approved
+  * changes requested
+  * commented
+* pr & issue mention
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+## Configuration
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+### OAuth token to send messages to Slack
 
-## Create an action from this template
+1. Access to [Your Apps](https://api.slack.com/apps)
+2. Click the Create New App
+3. Input App Name and Development Slack Workspace
+4. Select Permissions in Add features and functionality
+5. Add `chat:write:bot` in Permission Scopes
+6. Create a token
+7. Copy the OAuth access token
 
-Click the `Use this Template` and provide the new repo details for your action
+### `userlist.toml`
+
+`.github/userlist.toml`
+
+```toml
+[[users]]
+github = "ken-matsui"
+slack = "UJFU93IR9B7"
+```
+
+### Workflow file
+
+`.github/workflows/slack-notify.yml`
+
+```yaml
+name: GitHub Notification
+
+on:
+  pull_request:
+    types: [review_requested, closed]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+  pull_request_review_comment:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ken-matsui/org-notify@main
+        with:
+          slack_oauth_access_token: ${{ secrets.SLACK_OAUTH_ACCESS_TOKEN }}
+```
 
 ## Code in Main
 
 > First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
 
-Install the dependencies  
+Install the dependencies
 ```bash
 $ npm install
 ```
@@ -28,7 +73,7 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
-Run the tests :heavy_check_mark:  
+Run the tests :heavy_check_mark:
 ```bash
 $ npm test
 
@@ -57,9 +102,9 @@ import * as core from '@actions/core';
 ...
 
 async function run() {
-  try { 
+  try {
       ...
-  } 
+  }
   catch (error) {
     core.setFailed(error.message);
   }
@@ -72,7 +117,7 @@ See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/R
 
 ## Publish to a distribution branch
 
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
+Actions are run from GitHub repos so we will checkin the packed dist folder.
 
 Then run [ncc](https://github.com/zeit/ncc) and push the results:
 ```bash
@@ -84,7 +129,7 @@ $ git push origin releases/v1
 
 Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
 
-Your action is now published! :rocket: 
+Your action is now published! :rocket:
 
 See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
 

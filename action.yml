@@ -1,11 +1,10 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Org Notify'
+description: 'Maintains various notifications on an organization'
+author: 'ken-matsui'
 inputs:
-  milliseconds: # change this
+  slack_api_token:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'Slack API Token'
 runs:
   using: 'node12'
   main: 'dist/index.js'

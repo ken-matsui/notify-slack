@@ -3,7 +3,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import toml from 'toml'
 
-const { handleEvent } = require('./src/handleEvent')
+const {handleEvent} = require('./src/handleEvent')
 
 const CONFIG_PATH = '.github/userlist.toml'
 
@@ -18,7 +18,7 @@ async function run(): Promise<void> {
     const slackApiToken = core.getInput('slack_api_token')
     const config = getConfig()
 
-    await handleEvent(eventType, github.context.payload, slackApiToken, config);
+    await handleEvent(eventType, github.context.payload, slackApiToken, config)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
@@ -38,7 +38,12 @@ function getConfig(): object {
 }
 
 function isSupportedEventType(eventType: string): boolean {
-  const supportedEventTypes = ['pull_request', 'pull_request_review', 'issue_comment', 'pull_request_review_comment']
+  const supportedEventTypes = [
+    'pull_request',
+    'pull_request_review',
+    'issue_comment',
+    'pull_request_review_comment'
+  ]
   return supportedEventTypes.includes(eventType)
 }
 

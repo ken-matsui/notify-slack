@@ -1,6 +1,6 @@
-import {WebClient} from '@slack/web-api'
 import * as core from '@actions/core'
 import {getSlackUserId, toOxfordComma} from './utils'
+import {WebClient} from '@slack/web-api'
 
 export default class Slack {
   web: WebClient
@@ -25,13 +25,12 @@ export default class Slack {
       case 'requestReview':
         return [`:white_check_mark: ${sender} requested your review`, '']
       case 'requestReviewForAuthor':
-        const requestedReviewers = toOxfordComma(
-          payload['pull_request']['requested_reviewers'].map(
-            (v: any) => v['login']
-          )
-        )
         return [
-          `:white_check_mark: You requested ${requestedReviewers}'s review`,
+          `:white_check_mark: You requested ${toOxfordComma(
+            payload['pull_request']['requested_reviewers'].map(
+              (v: any) => v['login']
+            )
+          )}'s review`,
           'REVIEW'
         ]
       case 'mentionComment':
@@ -62,7 +61,7 @@ export default class Slack {
     payload: any,
     type: string,
     config: any
-  ) {
+  ): Promise<void> {
     const attachment = this.createBaseAttachment(payload, type)
     core.info(`attachment: ${JSON.stringify(attachment)}`)
 
@@ -76,7 +75,7 @@ export default class Slack {
 
       await this.web.chat.postMessage({
         channel: slackUserId,
-        text: text + repoInfo + Slack.makeJiraReminder(status),
+        text: `${text}${repoInfo}${Slack.makeJiraReminder(status)}`,
         attachments: [attachment]
       })
     }

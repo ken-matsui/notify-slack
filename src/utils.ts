@@ -1,5 +1,5 @@
 export function getSlackUserId(githubUser: string, users: any[]): string {
-  const user = users.find(user => user.github === githubUser)
+  const user = users.find(u => u.github === githubUser)
   if (user !== undefined) {
     return user['slack']
   }

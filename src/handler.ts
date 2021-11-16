@@ -92,12 +92,12 @@ export async function handleEvent(
 ): Promise<any> {
   if (githubEvent === 'pull_request') {
     return handlePullRequestEvent(payload, slackApiToken, config).catch(err => {
-      console.error(err)
+      core.error(err)
     })
   } else if (githubEvent === 'pull_request_review') {
     return handlePullRequestReviewEvent(payload, slackApiToken, config).catch(
       err => {
-        console.error(err)
+        core.error(err)
       }
     )
   } else if (
@@ -105,7 +105,7 @@ export async function handleEvent(
     githubEvent === 'pull_request_review_comment'
   ) {
     return handleIssueEvent(payload, slackApiToken, config).catch(err => {
-      console.error(err)
+      core.error(err)
     })
   }
   core.info(`event of type ${githubEvent} was ignored.`)

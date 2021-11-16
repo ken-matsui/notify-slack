@@ -112,18 +112,18 @@ function handleEvent(githubEvent, payload, slackApiToken, config) {
     return __awaiter(this, void 0, void 0, function* () {
         if (githubEvent === 'pull_request') {
             return handlePullRequestEvent(payload, slackApiToken, config).catch(err => {
-                console.error(err);
+                core.error(err);
             });
         }
         else if (githubEvent === 'pull_request_review') {
             return handlePullRequestReviewEvent(payload, slackApiToken, config).catch(err => {
-                console.error(err);
+                core.error(err);
             });
         }
         else if (githubEvent === 'issue_comment' ||
             githubEvent === 'pull_request_review_comment') {
             return handleIssueEvent(payload, slackApiToken, config).catch(err => {
-                console.error(err);
+                core.error(err);
             });
         }
         core.info(`event of type ${githubEvent} was ignored.`);
@@ -254,9 +254,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const web_api_1 = __nccwpck_require__(431);
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
+const web_api_1 = __nccwpck_require__(431);
 class Slack {
     constructor(token) {
         this.repositoryFullName = '';
@@ -275,9 +275,8 @@ class Slack {
             case 'requestReview':
                 return [`:white_check_mark: ${sender} requested your review`, ''];
             case 'requestReviewForAuthor':
-                const requestedReviewers = (0, utils_1.toOxfordComma)(payload['pull_request']['requested_reviewers'].map((v) => v['login']));
                 return [
-                    `:white_check_mark: You requested ${requestedReviewers}'s review`,
+                    `:white_check_mark: You requested ${(0, utils_1.toOxfordComma)(payload['pull_request']['requested_reviewers'].map((v) => v['login']))}'s review`,
                     'REVIEW'
                 ];
             case 'mentionComment':
@@ -316,7 +315,7 @@ class Slack {
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
                 yield this.web.chat.postMessage({
                     channel: slackUserId,
-                    text: text + repoInfo + Slack.makeJiraReminder(status),
+                    text: `${text}${repoInfo}${Slack.makeJiraReminder(status)}`,
                     attachments: [attachment]
                 });
             }
@@ -415,7 +414,7 @@ exports.default = Slack;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toOxfordComma = exports.parseMentionComment = exports.getSlackUserId = void 0;
 function getSlackUserId(githubUser, users) {
-    const user = users.find(user => user.github === githubUser);
+    const user = users.find(u => u.github === githubUser);
     if (user !== undefined) {
         return user['slack'];
     }

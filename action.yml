@@ -1,4 +1,4 @@
-name: 'Org Notify'
+name: 'Notification from GitHub to Slack'
 description: 'Maintains various notifications on an organization'
 author: 'ken-matsui'
 inputs:

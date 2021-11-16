@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as github from '@actions/github'
+import {Config} from './types'
 import {handleEvent} from './handler'
 import toml from 'toml'
 
@@ -23,7 +24,7 @@ async function run(): Promise<void> {
   }
 }
 
-function getConfig(): object {
+function getConfig(): Config {
   if (!fs.existsSync(CONFIG_PATH)) {
     throw new Error(`Configuration file '${CONFIG_PATH}' not found`)
   }

@@ -1,16 +1,21 @@
-export function getSlackUserId(githubUser: string, users: any[]): string {
+import {User} from './types'
+
+export function getSlackUserId(
+  githubUser: string,
+  users: User[]
+): string | undefined {
   const user = users.find(u => u.github === githubUser)
   if (user !== undefined) {
     return user['slack']
   }
-  return user
+  return undefined
 }
 
 function removeDuplicates<T>(array: T[]): T[] {
   return [...new Set(array)]
 }
 
-export function parseMentionComment(body: string): any {
+export function parseMentionComment(body: string): {mentionUsers: string[]} {
   let mentionUsers: string[] = []
   if (body) {
     const matches = body.match(/@([a-zA-Z0-9_-]+)/g)

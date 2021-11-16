@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import {getSlackUserId, toOxfordComma} from './utils'
+import {Config} from './types'
 import {WebClient} from '@slack/web-api'
 
 export default class Slack {
@@ -60,7 +61,7 @@ export default class Slack {
     githubUserId: string,
     payload: any,
     type: string,
-    config: any
+    config: Config
   ): Promise<void> {
     const attachment = this.createBaseAttachment(payload, type)
     core.info(`attachment: ${JSON.stringify(attachment)}`)

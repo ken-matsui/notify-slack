@@ -1,11 +1,12 @@
 import * as core from '@actions/core'
-import Slack from './slack'
+import {Config} from './types'
 import {parseMentionComment} from './utils'
+import Slack from './slack'
 
 async function handlePullRequestEvent(
   payload: any,
   slackApiToken: string,
-  config: object
+  config: Config
 ): Promise<any> {
   const slack = new Slack(slackApiToken)
   const action = payload.action
@@ -37,7 +38,7 @@ async function handlePullRequestEvent(
 async function handlePullRequestReviewEvent(
   payload: any,
   slackApiToken: string,
-  config: object
+  config: Config
 ): Promise<any> {
   const slack = new Slack(slackApiToken)
 
@@ -66,7 +67,7 @@ async function handlePullRequestReviewEvent(
 async function handleIssueEvent(
   payload: any,
   slackApiToken: string,
-  config: object
+  config: Config
 ): Promise<any> {
   const slack = new Slack(slackApiToken)
   const action = payload.action
@@ -88,7 +89,7 @@ export async function handleEvent(
   githubEvent: string,
   payload: any,
   slackApiToken: string,
-  config: object
+  config: Config
 ): Promise<any> {
   if (githubEvent === 'pull_request') {
     return handlePullRequestEvent(payload, slackApiToken, config).catch(err => {

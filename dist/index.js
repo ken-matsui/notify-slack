@@ -48,8 +48,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleEvent = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const slack_1 = __importDefault(__nccwpck_require__(568));
 const utils_1 = __nccwpck_require__(918);
+const slack_1 = __importDefault(__nccwpck_require__(568));
 function handlePullRequestEvent(payload, slackApiToken, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const slack = new slack_1.default(slackApiToken);
@@ -418,7 +418,7 @@ function getSlackUserId(githubUser, users) {
     if (user !== undefined) {
         return user['slack'];
     }
-    return user;
+    return undefined;
 }
 exports.getSlackUserId = getSlackUserId;
 function removeDuplicates(array) {

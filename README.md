@@ -32,7 +32,7 @@ Developers
 ```toml
 [[users]]
 github = "ken-matsui"
-slack = "UJFU93IR9B7"
+slack = "UXXXXXXXXXX"
 ```
 
 ### Workflow file

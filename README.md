@@ -15,9 +15,9 @@ Developers
 
 ## Configuration
 
-### OAuth token to send messages to Slack
+### How to obtain OAuth token of Slack App
 
-1. Access to [Your Apps](https://api.slack.com/apps)
+1. Go to [Your Apps](https://api.slack.com/apps)
 2. Click the Create New App
 3. Input App Name and Development Slack Workspace
 4. Select Permissions in Add features and functionality

@@ -5,8 +5,8 @@ import {WebClient} from '@slack/web-api'
 
 export default class Slack {
   web: WebClient
-  repositoryFullName: string = ''
-  prNumber: string = ''
+  repositoryFullName = ''
+  prNumber = ''
 
   constructor(token: string) {
     this.web = new WebClient(token)

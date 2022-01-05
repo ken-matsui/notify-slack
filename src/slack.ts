@@ -140,10 +140,11 @@ export default class Slack {
   }
 
   static getImageURL(commentBody: string): string {
-    const regex = /(https?:\/\/.*\.(?:png|jpg))/
-    const found = commentBody.match(regex)
-    if (found) {
-      return found[1]
+    if (commentBody) {
+      const found = commentBody.match(/(https?:\/\/.*\.(?:png|jpg))/)
+      if (found) {
+        return found[1]
+      }
     }
     return ''
   }

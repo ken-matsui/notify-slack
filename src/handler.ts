@@ -74,7 +74,7 @@ async function handleIssueEvent(
   const slack = new Slack(slackApiToken)
   const action = payload.action
 
-  // || action === 'edited'
+  // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
   if (action === 'created') {
     const comment = parseMentionComment(payload.comment?.body)
     for (const mentionUser of comment.mentionUsers) {

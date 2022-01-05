@@ -1,7 +1,9 @@
 import * as core from '@actions/core'
 import {getSlackUserId, toOxfordComma} from './utils'
 import {Config} from './types'
+import {MessageAttachment} from '@slack/types'
 import {WebClient} from '@slack/web-api'
+import {WebhookPayload} from '@actions/github/lib/interfaces'
 
 export default class Slack {
   web: WebClient
@@ -19,8 +21,8 @@ export default class Slack {
     return `\nPlease mark the related Jira ticket(s) as *${status}*`
   }
 
-  createText(payload: any, type: string): any {
-    const sender = payload['sender']['login']
+  createText(payload: WebhookPayload, type: string): [string, string] {
+    const sender = payload.sender?.login
 
     switch (type) {
       case 'requestReview':
@@ -28,8 +30,8 @@ export default class Slack {
       case 'requestReviewForAuthor':
         return [
           `:white_check_mark: You requested ${toOxfordComma(
-            payload['pull_request']['requested_reviewers'].map(
-              (v: any) => v['login']
+            payload.pull_request?.requested_reviewers.map(
+              (v: {login: string}) => v['login']
             )
           )}'s review`,
           'REVIEW'
@@ -38,7 +40,7 @@ export default class Slack {
       case 'reviewMentionComment':
         return [`:speech_balloon: ${sender} mentioned you`, '']
       case 'reviewComment':
-        switch (payload['review']['state']) {
+        switch (payload.review.state) {
           case 'approved':
             return [`:tada: ${sender} approved your pull request`, '']
           case 'changes_requested':
@@ -54,12 +56,14 @@ export default class Slack {
         }
       case 'merged':
         return [`:white_check_mark: ${sender} merged your pull request`, 'DONE']
+      default:
+        return ['', '']
     }
   }
 
   async postMessage(
     githubUserId: string,
-    payload: any,
+    payload: WebhookPayload,
     type: string,
     config: Config
   ): Promise<void> {
@@ -82,19 +86,19 @@ export default class Slack {
     }
   }
 
-  static getEventType(payload: any): string {
+  static getEventType(payload: WebhookPayload): string {
     return Object.prototype.hasOwnProperty.call(payload, 'issue')
       ? 'issue'
       : 'pull_request'
   }
 
-  static createAttachmentColor(type: string, payload: any): string {
+  static createAttachmentColor(type: string, payload: WebhookPayload): string {
     // '#36a64f'
     switch (type) {
       case 'requestReview':
         return 'warning'
       case 'reviewComment':
-        switch (payload['review']['state']) {
+        switch (payload.review.state) {
           case 'approved':
             return 'good'
           case 'changes_requested':
@@ -110,13 +114,16 @@ export default class Slack {
     }
   }
 
-  static createAttachmentTitlePrefix(type: string, payload: any): string {
+  static createAttachmentTitlePrefix(
+    type: string,
+    payload: WebhookPayload
+  ): string {
     switch (type) {
       case 'mentionComment':
       case 'reviewMentionComment':
         return 'Comment on '
       case 'reviewComment':
-        switch (payload['review']['state']) {
+        switch (payload.review.state) {
           case 'approved':
             return 'Approval on '
           case 'changes_requested':
@@ -141,7 +148,10 @@ export default class Slack {
     return ''
   }
 
-  createBaseAttachment(payload: any, type: string): any {
+  createBaseAttachment(
+    payload: WebhookPayload,
+    type: string
+  ): MessageAttachment {
     const isReviewType =
       type === 'reviewComment' || type === 'reviewMentionComment'
     const isCommentType =
@@ -152,10 +162,11 @@ export default class Slack {
     const event = payload[`${Slack.getEventType(payload)}`]
     const comment = payload[`${isReviewType ? 'review' : 'comment'}`]
     const user = event.user
-    const repository = payload['repository']
+    const repository = payload.repository
 
     this.prNumber = `#${event['number']}`
-    this.repositoryFullName = repository['full_name']
+    this.repositoryFullName =
+      typeof repository?.full_name === 'string' ? repository?.full_name : ''
 
     return {
       color: Slack.createAttachmentColor(type, payload),
@@ -169,8 +180,8 @@ export default class Slack {
       image_url: isCommentType ? Slack.getImageURL(comment.body) : '', // TODO: remove parsed image url from comment.body
       footer_icon:
         'https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png',
-      footer: `<${repository['html_url']}|${this.repositoryFullName}>`,
-      ts: Math.floor(Date.now() / 1000)
+      footer: `<${repository?.html_url}|${this.repositoryFullName}>`,
+      ts: Math.floor(Date.now() / 1000).toString()
     }
   }
 }

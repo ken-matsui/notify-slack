@@ -19,8 +19,11 @@ async function run(): Promise<void> {
     const config = getConfig()
 
     await handleEvent(eventType, github.context.payload, slackApiToken, config)
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      core.error(error)
+      core.setFailed(error.message)
+    }
   }
 }
 

@@ -14,11 +14,11 @@ export default class Slack {
     this.web = new WebClient(token)
   }
 
-  static makeJiraReminder(status: string): string {
+  static makeTicketStatusReminder(status: string): string {
     if (status !== 'IN PROGRESS' && status !== 'REVIEW' && status !== 'DONE') {
       return ''
     }
-    return `\nPlease mark the related Jira ticket(s) as *${status}*`
+    return `\nPlease mark the related ticket(s) as *${status}*`
   }
 
   createText(payload: WebhookPayload, type: string): [string, string] {
@@ -80,7 +80,7 @@ export default class Slack {
 
       await this.web.chat.postMessage({
         channel: slackUserId,
-        text: `${text}${repoInfo}${Slack.makeJiraReminder(status)}`,
+        text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
         attachments: [attachment]
       })
     }

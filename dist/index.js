@@ -256,11 +256,11 @@ class Slack {
         this.prNumber = '';
         this.web = new web_api_1.WebClient(token);
     }
-    static makeJiraReminder(status) {
+    static makeTicketStatusReminder(status) {
         if (status !== 'IN PROGRESS' && status !== 'REVIEW' && status !== 'DONE') {
             return '';
         }
-        return `\nPlease mark the related Jira ticket(s) as *${status}*`;
+        return `\nPlease mark the related ticket(s) as *${status}*`;
     }
     createText(payload, type) {
         var _a, _b;
@@ -311,7 +311,7 @@ class Slack {
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
                 yield this.web.chat.postMessage({
                     channel: slackUserId,
-                    text: `${text}${repoInfo}${Slack.makeJiraReminder(status)}`,
+                    text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
                     attachments: [attachment]
                 });
             }

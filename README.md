@@ -37,7 +37,7 @@ slack = "UXXXXXXXXXX"
 
 ### Workflow file
 
-`.github/workflows/slack-notify.yml`
+`.github/workflows/notify-slack.yml`
 
 ```yaml
 name: GitHub Notification
@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: ken-matsui/org-notify@main
+      - uses: ken-matsui/notify-slack@main
         with:
           slack_oauth_access_token: ${{ secrets.SLACK_OAUTH_ACCESS_TOKEN }}
 ```

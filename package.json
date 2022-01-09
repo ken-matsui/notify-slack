@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
+  "name": "notify-slack",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Send various notifications from GitHub to Slack",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/ken-matsui/notify-slack.git"
   },
   "keywords": [
     "actions",
-    "node",
-    "setup"
+    "github",
+    "slack"
   ],
-  "author": "",
+  "author": "Ken Matsui <26405363+ken-matsui@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",

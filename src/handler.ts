@@ -6,10 +6,9 @@ import {parseMentionComment} from './utils'
 
 async function handlePullRequestEvent(
   payload: WebhookPayload,
-  slackApiToken: string,
+  slack: Slack,
   config: Config
 ): Promise<void> {
-  const slack = new Slack(slackApiToken)
   const action = payload.action
   const pullRequestAuthor = payload.pull_request?.user.login
 
@@ -30,7 +29,7 @@ async function handlePullRequestEvent(
   } else if (action === 'closed' && payload.pull_request?.merged) {
     await slack.postMessage(pullRequestAuthor, payload, 'merged', config)
   } else {
-    core.info(`${action} action was not hooked`)
+    core.warning(`${action} action was not hooked`)
     return
   }
 
@@ -39,11 +38,9 @@ async function handlePullRequestEvent(
 
 async function handlePullRequestReviewEvent(
   payload: WebhookPayload,
-  slackApiToken: string,
+  slack: Slack,
   config: Config
 ): Promise<void> {
-  const slack = new Slack(slackApiToken)
-
   // まずは、メンションがあれば、それを通知する。
   const comment = parseMentionComment(payload.review.body)
   for (const mentionUser of comment.mentionUsers) {
@@ -68,10 +65,9 @@ async function handlePullRequestReviewEvent(
 
 async function handleIssueEvent(
   payload: WebhookPayload,
-  slackApiToken: string,
+  slack: Slack,
   config: Config
 ): Promise<void> {
-  const slack = new Slack(slackApiToken)
   const action = payload.action
 
   // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
@@ -82,26 +78,21 @@ async function handleIssueEvent(
     }
     core.info('Issue event processing has been completed')
   } else {
-    core.info(`${action} action was not hooked`)
+    core.warning(`${action} action was not hooked`)
   }
 }
 
-export async function handleEvent(
-  githubEvent: string,
+export type HandlerType = (
   payload: WebhookPayload,
-  slackApiToken: string,
+  slack: Slack,
   config: Config
-): Promise<void> {
-  if (githubEvent === 'pull_request') {
-    await handlePullRequestEvent(payload, slackApiToken, config)
-  } else if (githubEvent === 'pull_request_review') {
-    await handlePullRequestReviewEvent(payload, slackApiToken, config)
-  } else if (
-    githubEvent === 'issue_comment' ||
-    githubEvent === 'pull_request_review_comment'
-  ) {
-    await handleIssueEvent(payload, slackApiToken, config)
-  } else {
-    core.info(`event of type ${githubEvent} was ignored.`)
-  }
+) => Promise<void>
+
+type HandlerList = {readonly [key: string]: HandlerType}
+
+export const handlerList: HandlerList = {
+  pull_request: handlePullRequestEvent,
+  pull_request_review: handlePullRequestReviewEvent,
+  issue_comment: handleIssueEvent,
+  pull_request_review_comment: handleIssueEvent
 }

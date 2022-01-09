@@ -1,24 +1,26 @@
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import * as github from '@actions/github'
+import {HandlerType, handlerList} from './handler'
 import {Config} from './types'
-import {handleEvent} from './handler'
+import Slack from './slack'
 import toml from 'toml'
 
 const CONFIG_PATH = '.github/userlist.toml'
 
 async function run(): Promise<void> {
   try {
-    const eventType = github.context.eventName
-    if (!isSupportedEventType(eventType)) {
+    const eventType: string = github.context.eventName
+    const handler: HandlerType | undefined = handlerList[eventType]
+    if (handler === undefined) {
       core.warning(`The detected event type is not supported: '${eventType}'`)
       return
     }
 
     const slackApiToken = core.getInput('slack_oauth_access_token')
+    const slack = new Slack(slackApiToken)
     const config = getConfig()
-
-    await handleEvent(eventType, github.context.payload, slackApiToken, config)
+    await handler(github.context.payload, slack, config)
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.error(error)
@@ -38,16 +40,6 @@ function getConfig(): Config {
 
   const fileContent = fs.readFileSync(CONFIG_PATH, {encoding: 'utf8'})
   return toml.parse(fileContent)
-}
-
-function isSupportedEventType(eventType: string): boolean {
-  const supportedEventTypes = [
-    'pull_request',
-    'pull_request_review',
-    'issue_comment',
-    'pull_request_review_comment'
-  ]
-  return supportedEventTypes.includes(eventType)
 }
 
 run()

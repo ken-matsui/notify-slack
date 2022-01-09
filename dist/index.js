@@ -34,18 +34,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.handleEvent = void 0;
+exports.handlerList = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const slack_1 = __importDefault(__nccwpck_require__(568));
 const utils_1 = __nccwpck_require__(918);
-function handlePullRequestEvent(payload, slackApiToken, config) {
+function handlePullRequestEvent(payload, slack, config) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
-        const slack = new slack_1.default(slackApiToken);
         const action = payload.action;
         const pullRequestAuthor = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
         if (action === 'review_requested') {
@@ -61,16 +56,15 @@ function handlePullRequestEvent(payload, slackApiToken, config) {
             yield slack.postMessage(pullRequestAuthor, payload, 'merged', config);
         }
         else {
-            core.info(`${action} action was not hooked`);
+            core.warning(`${action} action was not hooked`);
             return;
         }
         core.info('Pull request event processing has been completed');
     });
 }
-function handlePullRequestReviewEvent(payload, slackApiToken, config) {
+function handlePullRequestReviewEvent(payload, slack, config) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const slack = new slack_1.default(slackApiToken);
         // まずは、メンションがあれば、それを通知する。
         const comment = (0, utils_1.parseMentionComment)(payload.review.body);
         for (const mentionUser of comment.mentionUsers) {
@@ -86,12 +80,11 @@ function handlePullRequestReviewEvent(payload, slackApiToken, config) {
         core.info('Pull request review event processing has been completed');
     });
 }
-function handleIssueEvent(payload, slackApiToken, config) {
+function handleIssueEvent(payload, slack, config) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        const slack = new slack_1.default(slackApiToken);
         const action = payload.action;
-        // || action === 'edited'
+        // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
         if (action === 'created') {
             const comment = (0, utils_1.parseMentionComment)((_a = payload.comment) === null || _a === void 0 ? void 0 : _a.body);
             for (const mentionUser of comment.mentionUsers) {
@@ -100,28 +93,16 @@ function handleIssueEvent(payload, slackApiToken, config) {
             core.info('Issue event processing has been completed');
         }
         else {
-            core.info(`${action} action was not hooked`);
+            core.warning(`${action} action was not hooked`);
         }
     });
 }
-function handleEvent(githubEvent, payload, slackApiToken, config) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (githubEvent === 'pull_request') {
-            yield handlePullRequestEvent(payload, slackApiToken, config);
-        }
-        else if (githubEvent === 'pull_request_review') {
-            yield handlePullRequestReviewEvent(payload, slackApiToken, config);
-        }
-        else if (githubEvent === 'issue_comment' ||
-            githubEvent === 'pull_request_review_comment') {
-            yield handleIssueEvent(payload, slackApiToken, config);
-        }
-        else {
-            core.info(`event of type ${githubEvent} was ignored.`);
-        }
-    });
-}
-exports.handleEvent = handleEvent;
+exports.handlerList = {
+    pull_request: handlePullRequestEvent,
+    pull_request_review: handlePullRequestReviewEvent,
+    issue_comment: handleIssueEvent,
+    pull_request_review_comment: handleIssueEvent
+};
 
 
 /***/ }),
@@ -167,19 +148,22 @@ const core = __importStar(__nccwpck_require__(2186));
 const fs = __importStar(__nccwpck_require__(7147));
 const github = __importStar(__nccwpck_require__(5438));
 const handler_1 = __nccwpck_require__(1201);
+const slack_1 = __importDefault(__nccwpck_require__(568));
 const toml_1 = __importDefault(__nccwpck_require__(4920));
 const CONFIG_PATH = '.github/userlist.toml';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const eventType = github.context.eventName;
-            if (!isSupportedEventType(eventType)) {
+            const handler = handler_1.handlerList[eventType];
+            if (handler === undefined) {
                 core.warning(`The detected event type is not supported: '${eventType}'`);
                 return;
             }
             const slackApiToken = core.getInput('slack_oauth_access_token');
+            const slack = new slack_1.default(slackApiToken);
             const config = getConfig();
-            yield (0, handler_1.handleEvent)(eventType, github.context.payload, slackApiToken, config);
+            yield handler(github.context.payload, slack, config);
         }
         catch (error) {
             if (error instanceof Error) {
@@ -198,15 +182,6 @@ function getConfig() {
     }
     const fileContent = fs.readFileSync(CONFIG_PATH, { encoding: 'utf8' });
     return toml_1.default.parse(fileContent);
-}
-function isSupportedEventType(eventType) {
-    const supportedEventTypes = [
-        'pull_request',
-        'pull_request_review',
-        'issue_comment',
-        'pull_request_review_comment'
-    ];
-    return supportedEventTypes.includes(eventType);
 }
 run();
 

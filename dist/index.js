@@ -279,10 +279,10 @@ class Slack {
         return __awaiter(this, void 0, void 0, function* () {
             const slackUserId = (0, utils_1.getSlackUserId)(githubUserId, config['users']);
             if (slackUserId === undefined) {
-                core.info(`target user ${githubUserId} was not found`);
+                core.info(`target user '${githubUserId}' was not found`);
             }
             else {
-                core.info(`target user ${githubUserId} was found: ${slackUserId}`);
+                core.info(`target user '${githubUserId}' was found: ${slackUserId}`);
                 const [text, status] = this.createText(payload, type);
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
                 const attachment = this.createBaseAttachment(payload, type);

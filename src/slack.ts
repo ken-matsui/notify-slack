@@ -69,9 +69,9 @@ export default class Slack {
   ): Promise<void> {
     const slackUserId = getSlackUserId(githubUserId, config['users'])
     if (slackUserId === undefined) {
-      core.info(`target user ${githubUserId} was not found`)
+      core.info(`target user '${githubUserId}' was not found`)
     } else {
-      core.info(`target user ${githubUserId} was found: ${slackUserId}`)
+      core.info(`target user '${githubUserId}' was found: ${slackUserId}`)
       const [text, status] = this.createText(payload, type)
       const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
 

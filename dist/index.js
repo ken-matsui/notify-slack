@@ -46,7 +46,10 @@ function handlePullRequestEvent(payload, slack, config) {
         core.info(`Processing the detected action: '${action}' ...`);
         if (action === 'review_requested') {
             const requestedReviewer = payload.requested_reviewer.login;
-            yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
+            if (requestedReviewer !== undefined) {
+                yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
+                core.info(`A message is being sent to '${requestedReviewer}'.`);
+            }
             // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
             // Jiraチケットのリマインドを送信する。
             if (pullRequestAuthor === ((_b = payload.sender) === null || _b === void 0 ? void 0 : _b.login)) {

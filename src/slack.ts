@@ -81,22 +81,23 @@ export default class Slack {
     const slackUserId = getSlackUserId(githubUserId, config['users'])
     if (slackUserId === undefined) {
       core.info(`target user '${githubUserId}' was not found`)
-    } else {
-      core.info(`target user '${githubUserId}' was found: ${slackUserId}`)
-      const [text, status] = this.createText(payload, type)
-      const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
-      const reminder =
-        status !== undefined ? Slack.makeTicketStatusReminder(status) : ''
-
-      const attachment = this.createBaseAttachment(payload, type)
-      core.info(`attachment: ${JSON.stringify(attachment)}`)
-      await this.web.chat.postMessage({
-        channel: slackUserId,
-        text: `${text}${repoInfo}${reminder}`,
-        attachments: [attachment]
-      })
-      core.info(`A message is being sent to '${githubUserId}'.`)
+      return
     }
+
+    core.info(`target user '${githubUserId}' was found: ${slackUserId}`)
+    const [text, status] = this.createText(payload, type)
+    const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
+    const reminder =
+      status !== undefined ? Slack.makeTicketStatusReminder(status) : ''
+
+    const attachment = this.createBaseAttachment(payload, type)
+    core.info(`attachment: ${JSON.stringify(attachment)}`)
+    await this.web.chat.postMessage({
+      channel: slackUserId,
+      text: `${text}${repoInfo}${reminder}`,
+      attachments: [attachment]
+    })
+    core.info(`A message is being sent to '${githubUserId}'.`)
   }
 
   static getEventType(payload: WebhookPayload): string {

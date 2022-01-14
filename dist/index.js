@@ -228,6 +228,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
 const web_api_1 = __nccwpck_require__(431);
+const reviewMessageTypes = ['reviewComment', 'reviewMentionComment'];
+const commentMessageTypes = ['mentionComment', ...reviewMessageTypes];
 class Slack {
     constructor(token) {
         this.repositoryFullName = '';
@@ -346,10 +348,8 @@ class Slack {
         return '';
     }
     createBaseAttachment(payload, type) {
-        const isReviewType = type === 'reviewComment' || type === 'reviewMentionComment';
-        const isCommentType = type === 'mentionComment' ||
-            type === 'reviewComment' ||
-            type === 'reviewMentionComment';
+        const isReviewType = reviewMessageTypes.includes(type);
+        const isCommentType = commentMessageTypes.includes(type);
         const event = payload[`${Slack.getEventType(payload)}`];
         const comment = payload[`${isReviewType ? 'review' : 'comment'}`];
         const user = event.user;

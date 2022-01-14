@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
+import {Config, Extends} from './types'
 import {getSlackUserId, toOxfordComma} from './utils'
-import {Config} from './types'
 import {MessageAttachment} from '@slack/types'
 import {WebClient} from '@slack/web-api'
 import {WebhookPayload} from '@actions/github/lib/interfaces'
@@ -12,6 +12,13 @@ type MessageType =
   | 'merged'
   | 'reviewMentionComment'
   | 'reviewComment'
+
+const reviewMessageTypes = ['reviewComment', 'reviewMentionComment'] as const
+type ReviewMessage = Extends<MessageType, typeof reviewMessageTypes[number]>
+
+const commentMessageTypes = ['mentionComment', ...reviewMessageTypes] as const
+type CommentMessage = Extends<MessageType, typeof commentMessageTypes[number]>
+
 type Status = 'IN PROGRESS' | 'REVIEW' | 'DONE'
 
 export default class Slack {
@@ -162,12 +169,8 @@ export default class Slack {
     payload: WebhookPayload,
     type: MessageType
   ): MessageAttachment {
-    const isReviewType =
-      type === 'reviewComment' || type === 'reviewMentionComment'
-    const isCommentType =
-      type === 'mentionComment' ||
-      type === 'reviewComment' ||
-      type === 'reviewMentionComment'
+    const isReviewType = reviewMessageTypes.includes(type as ReviewMessage)
+    const isCommentType = commentMessageTypes.includes(type as CommentMessage)
 
     const event = payload[`${Slack.getEventType(payload)}`]
     const comment = payload[`${isReviewType ? 'review' : 'comment'}`]

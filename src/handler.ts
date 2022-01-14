@@ -15,23 +15,12 @@ async function handlePullRequestEvent(
 
   if (action === 'review_requested') {
     const requestedReviewer = payload.requested_reviewer?.login
-    if (requestedReviewer !== undefined) {
-      await slack.postMessage(
-        requestedReviewer,
-        payload,
-        'requestReview',
-        config
-      )
-    }
+    await slack.postMessage(requestedReviewer, payload, 'requestReview', config)
 
     // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
     // Jiraチケットのリマインドを送信する。
     const reviewRequestSender = payload.sender?.login
-    if (
-      pullRequestAuthor !== undefined &&
-      reviewRequestSender !== undefined &&
-      pullRequestAuthor === reviewRequestSender
-    ) {
+    if (pullRequestAuthor === reviewRequestSender) {
       await slack.postMessage(
         pullRequestAuthor,
         payload,

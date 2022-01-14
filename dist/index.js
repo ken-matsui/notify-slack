@@ -46,15 +46,11 @@ function handlePullRequestEvent(payload, slack, config) {
         core.info(`Processing the detected action: '${action}' ...`);
         if (action === 'review_requested') {
             const requestedReviewer = (_b = payload.requested_reviewer) === null || _b === void 0 ? void 0 : _b.login;
-            if (requestedReviewer !== undefined) {
-                yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
-            }
+            yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
             // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
             // Jiraチケットのリマインドを送信する。
             const reviewRequestSender = (_c = payload.sender) === null || _c === void 0 ? void 0 : _c.login;
-            if (pullRequestAuthor !== undefined &&
-                reviewRequestSender !== undefined &&
-                pullRequestAuthor === reviewRequestSender) {
+            if (pullRequestAuthor === reviewRequestSender) {
                 yield slack.postMessage(pullRequestAuthor, payload, 'requestReviewForAuthor', config);
             }
         }
@@ -281,8 +277,6 @@ class Slack {
     }
     postMessage(githubUserId, payload, type, config) {
         return __awaiter(this, void 0, void 0, function* () {
-            const attachment = this.createBaseAttachment(payload, type);
-            core.info(`attachment: ${JSON.stringify(attachment)}`);
             const slackUserId = (0, utils_1.getSlackUserId)(githubUserId, config['users']);
             if (slackUserId === undefined) {
                 core.info(`target user ${githubUserId} was not found`);
@@ -291,6 +285,8 @@ class Slack {
                 core.info(`target user ${githubUserId} was found: ${slackUserId}`);
                 const [text, status] = this.createText(payload, type);
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
+                const attachment = this.createBaseAttachment(payload, type);
+                core.info(`attachment: ${JSON.stringify(attachment)}`);
                 yield this.web.chat.postMessage({
                     channel: slackUserId,
                     text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,

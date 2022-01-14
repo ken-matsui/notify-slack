@@ -67,9 +67,6 @@ export default class Slack {
     type: string,
     config: Config
   ): Promise<void> {
-    const attachment = this.createBaseAttachment(payload, type)
-    core.info(`attachment: ${JSON.stringify(attachment)}`)
-
     const slackUserId = getSlackUserId(githubUserId, config['users'])
     if (slackUserId === undefined) {
       core.info(`target user ${githubUserId} was not found`)
@@ -78,6 +75,8 @@ export default class Slack {
       const [text, status] = this.createText(payload, type)
       const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
 
+      const attachment = this.createBaseAttachment(payload, type)
+      core.info(`attachment: ${JSON.stringify(attachment)}`)
       await this.web.chat.postMessage({
         channel: slackUserId,
         text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,

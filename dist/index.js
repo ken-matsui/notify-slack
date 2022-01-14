@@ -39,26 +39,28 @@ exports.handlerList = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
 function handlePullRequestEvent(payload, slack, config) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         const action = payload.action;
         const pullRequestAuthor = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
         core.info(`Processing the detected action: '${action}' ...`);
         if (action === 'review_requested') {
-            const requestedReviewer = payload.requested_reviewer.login;
+            const requestedReviewer = (_b = payload.requested_reviewer) === null || _b === void 0 ? void 0 : _b.login;
             if (requestedReviewer !== undefined) {
                 yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
                 core.info(`A message is being sent to '${requestedReviewer}'.`);
             }
             // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
             // Jiraチケットのリマインドを送信する。
+            const reviewRequestSender = (_c = payload.sender) === null || _c === void 0 ? void 0 : _c.login;
             if (pullRequestAuthor !== undefined &&
-                pullRequestAuthor === ((_b = payload.sender) === null || _b === void 0 ? void 0 : _b.login)) {
+                reviewRequestSender !== undefined &&
+                pullRequestAuthor === reviewRequestSender) {
                 yield slack.postMessage(pullRequestAuthor, payload, 'requestReviewForAuthor', config);
                 core.info(`A message is being sent to '${pullRequestAuthor}'.`);
             }
         }
-        else if (action === 'closed' && ((_c = payload.pull_request) === null || _c === void 0 ? void 0 : _c.merged)) {
+        else if (action === 'closed' && ((_d = payload.pull_request) === null || _d === void 0 ? void 0 : _d.merged)) {
             yield slack.postMessage(pullRequestAuthor, payload, 'merged', config);
         }
         else {

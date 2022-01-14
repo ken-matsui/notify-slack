@@ -22,7 +22,6 @@ async function handlePullRequestEvent(
         'requestReview',
         config
       )
-      core.info(`A message is being sent to '${requestedReviewer}'.`)
     }
 
     // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
@@ -39,7 +38,6 @@ async function handlePullRequestEvent(
         'requestReviewForAuthor',
         config
       )
-      core.info(`A message is being sent to '${pullRequestAuthor}'.`)
     }
   } else if (action === 'closed' && payload.pull_request?.merged) {
     await slack.postMessage(pullRequestAuthor, payload, 'merged', config)
@@ -47,8 +45,6 @@ async function handlePullRequestEvent(
     core.warning(`${action} action was not hooked`)
     return
   }
-
-  core.info('Pull request event processing has been completed')
 }
 
 async function handlePullRequestReviewEvent(
@@ -74,8 +70,6 @@ async function handlePullRequestReviewEvent(
   if (!comment.mentionUsers.includes(author) && reviewer !== author) {
     await slack.postMessage(author, payload, 'reviewComment', config)
   }
-
-  core.info('Pull request review event processing has been completed')
 }
 
 async function handleIssueEvent(
@@ -92,7 +86,6 @@ async function handleIssueEvent(
     for (const mentionUser of comment.mentionUsers) {
       await slack.postMessage(mentionUser, payload, 'mentionComment', config)
     }
-    core.info('Issue event processing has been completed')
   } else {
     core.warning(`${action} action was not hooked`)
   }

@@ -83,6 +83,7 @@ export default class Slack {
         text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
         attachments: [attachment]
       })
+      core.info(`A message is being sent to '${githubUserId}'.`)
     }
   }
 

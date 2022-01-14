@@ -48,7 +48,6 @@ function handlePullRequestEvent(payload, slack, config) {
             const requestedReviewer = (_b = payload.requested_reviewer) === null || _b === void 0 ? void 0 : _b.login;
             if (requestedReviewer !== undefined) {
                 yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
-                core.info(`A message is being sent to '${requestedReviewer}'.`);
             }
             // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
             // Jiraチケットのリマインドを送信する。
@@ -57,7 +56,6 @@ function handlePullRequestEvent(payload, slack, config) {
                 reviewRequestSender !== undefined &&
                 pullRequestAuthor === reviewRequestSender) {
                 yield slack.postMessage(pullRequestAuthor, payload, 'requestReviewForAuthor', config);
-                core.info(`A message is being sent to '${pullRequestAuthor}'.`);
             }
         }
         else if (action === 'closed' && ((_d = payload.pull_request) === null || _d === void 0 ? void 0 : _d.merged)) {
@@ -67,7 +65,6 @@ function handlePullRequestEvent(payload, slack, config) {
             core.warning(`${action} action was not hooked`);
             return;
         }
-        core.info('Pull request event processing has been completed');
     });
 }
 function handlePullRequestReviewEvent(payload, slack, config) {
@@ -85,7 +82,6 @@ function handlePullRequestReviewEvent(payload, slack, config) {
         if (!comment.mentionUsers.includes(author) && reviewer !== author) {
             yield slack.postMessage(author, payload, 'reviewComment', config);
         }
-        core.info('Pull request review event processing has been completed');
     });
 }
 function handleIssueEvent(payload, slack, config) {
@@ -99,7 +95,6 @@ function handleIssueEvent(payload, slack, config) {
             for (const mentionUser of comment.mentionUsers) {
                 yield slack.postMessage(mentionUser, payload, 'mentionComment', config);
             }
-            core.info('Issue event processing has been completed');
         }
         else {
             core.warning(`${action} action was not hooked`);
@@ -175,6 +170,7 @@ function run() {
             const config = getConfig();
             core.info('Configurations are successfully loaded.');
             yield handler(github.context.payload, slack, config);
+            core.info(`'${eventType}' event has been successfully completed.`);
         }
         catch (error) {
             if (error instanceof Error) {
@@ -300,6 +296,7 @@ class Slack {
                     text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
                     attachments: [attachment]
                 });
+                core.info(`A message is being sent to '${githubUserId}'.`);
             }
         });
     }

@@ -24,6 +24,7 @@ async function run(): Promise<void> {
     core.info('Configurations are successfully loaded.')
 
     await handler(github.context.payload, slack, config)
+    core.info(`'${eventType}' event has been successfully completed.`)
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.error(error)

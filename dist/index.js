@@ -160,9 +160,11 @@ function run() {
                 core.warning(`The detected event type is not supported: '${eventType}'`);
                 return;
             }
+            core.info(`Processing the detected event type: '${eventType}' ...`);
             const slackApiToken = core.getInput('slack_oauth_access_token');
             const slack = new slack_1.default(slackApiToken);
             const config = getConfig();
+            core.info('Configurations are successfully loaded.');
             yield handler(github.context.payload, slack, config);
         }
         catch (error) {

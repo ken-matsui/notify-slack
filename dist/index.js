@@ -52,8 +52,10 @@ function handlePullRequestEvent(payload, slack, config) {
             }
             // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
             // Jiraチケットのリマインドを送信する。
-            if (pullRequestAuthor === ((_b = payload.sender) === null || _b === void 0 ? void 0 : _b.login)) {
+            if (pullRequestAuthor !== undefined &&
+                pullRequestAuthor === ((_b = payload.sender) === null || _b === void 0 ? void 0 : _b.login)) {
                 yield slack.postMessage(pullRequestAuthor, payload, 'requestReviewForAuthor', config);
+                core.info(`A message is being sent to '${pullRequestAuthor}'.`);
             }
         }
         else if (action === 'closed' && ((_c = payload.pull_request) === null || _c === void 0 ? void 0 : _c.merged)) {

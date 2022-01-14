@@ -27,13 +27,17 @@ async function handlePullRequestEvent(
 
     // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
     // Jiraチケットのリマインドを送信する。
-    if (pullRequestAuthor === payload.sender?.login) {
+    if (
+      pullRequestAuthor !== undefined &&
+      pullRequestAuthor === payload.sender?.login
+    ) {
       await slack.postMessage(
         pullRequestAuthor,
         payload,
         'requestReviewForAuthor',
         config
       )
+      core.info(`A message is being sent to '${pullRequestAuthor}'.`)
     }
   } else if (action === 'closed' && payload.pull_request?.merged) {
     await slack.postMessage(pullRequestAuthor, payload, 'merged', config)

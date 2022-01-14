@@ -5,6 +5,15 @@ import {MessageAttachment} from '@slack/types'
 import {WebClient} from '@slack/web-api'
 import {WebhookPayload} from '@actions/github/lib/interfaces'
 
+type MessageType =
+  | 'mentionComment'
+  | 'requestReview'
+  | 'requestReviewForAuthor'
+  | 'merged'
+  | 'reviewMentionComment'
+  | 'reviewComment'
+type Status = 'IN PROGRESS' | 'REVIEW' | 'DONE'
+
 export default class Slack {
   web: WebClient
   repositoryFullName = ''
@@ -14,19 +23,19 @@ export default class Slack {
     this.web = new WebClient(token)
   }
 
-  static makeTicketStatusReminder(status: string): string {
-    if (status !== 'IN PROGRESS' && status !== 'REVIEW' && status !== 'DONE') {
-      return ''
-    }
+  static makeTicketStatusReminder(status: Status): string {
     return `\nPlease mark the related ticket(s) as *${status}*`
   }
 
-  createText(payload: WebhookPayload, type: string): [string, string] {
+  createText(
+    payload: WebhookPayload,
+    type: MessageType
+  ): [string] | [string, Status] {
     const sender = payload.sender?.login
 
     switch (type) {
       case 'requestReview':
-        return [`:white_check_mark: ${sender} requested your review`, '']
+        return [`:white_check_mark: ${sender} requested your review`]
       case 'requestReviewForAuthor':
         return [
           `:white_check_mark: You requested ${toOxfordComma(
@@ -38,33 +47,28 @@ export default class Slack {
         ]
       case 'mentionComment':
       case 'reviewMentionComment':
-        return [`:speech_balloon: ${sender} mentioned you`, '']
+        return [`:speech_balloon: ${sender} mentioned you`]
       case 'reviewComment':
         switch (payload.review.state) {
           case 'approved':
-            return [`:tada: ${sender} approved your pull request`, '']
+            return [`:tada: ${sender} approved your pull request`]
           case 'changes_requested':
             return [
               `:bulb: ${sender} requested changes on your pull request`,
               'IN PROGRESS'
             ]
           default:
-            return [
-              `:speech_balloon: ${sender} commented on your pull request`,
-              ''
-            ]
+            return [`:speech_balloon: ${sender} commented on your pull request`]
         }
       case 'merged':
         return [`:white_check_mark: ${sender} merged your pull request`, 'DONE']
-      default:
-        return ['', '']
     }
   }
 
   async postMessage(
     githubUserId: string,
     payload: WebhookPayload,
-    type: string,
+    type: MessageType,
     config: Config
   ): Promise<void> {
     const slackUserId = getSlackUserId(githubUserId, config['users'])
@@ -74,12 +78,14 @@ export default class Slack {
       core.info(`target user '${githubUserId}' was found: ${slackUserId}`)
       const [text, status] = this.createText(payload, type)
       const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`
+      const reminder =
+        status !== undefined ? Slack.makeTicketStatusReminder(status) : ''
 
       const attachment = this.createBaseAttachment(payload, type)
       core.info(`attachment: ${JSON.stringify(attachment)}`)
       await this.web.chat.postMessage({
         channel: slackUserId,
-        text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
+        text: `${text}${repoInfo}${reminder}`,
         attachments: [attachment]
       })
       core.info(`A message is being sent to '${githubUserId}'.`)
@@ -92,7 +98,10 @@ export default class Slack {
       : 'pull_request'
   }
 
-  static createAttachmentColor(type: string, payload: WebhookPayload): string {
+  static createAttachmentColor(
+    type: MessageType,
+    payload: WebhookPayload
+  ): string {
     // '#36a64f'
     switch (type) {
       case 'requestReview':
@@ -115,7 +124,7 @@ export default class Slack {
   }
 
   static createAttachmentTitlePrefix(
-    type: string,
+    type: MessageType,
     payload: WebhookPayload
   ): string {
     switch (type) {
@@ -151,7 +160,7 @@ export default class Slack {
 
   createBaseAttachment(
     payload: WebhookPayload,
-    type: string
+    type: MessageType
   ): MessageAttachment {
     const isReviewType =
       type === 'reviewComment' || type === 'reviewMentionComment'

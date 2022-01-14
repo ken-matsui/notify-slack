@@ -235,9 +235,6 @@ class Slack {
         this.web = new web_api_1.WebClient(token);
     }
     static makeTicketStatusReminder(status) {
-        if (status !== 'IN PROGRESS' && status !== 'REVIEW' && status !== 'DONE') {
-            return '';
-        }
         return `\nPlease mark the related ticket(s) as *${status}*`;
     }
     createText(payload, type) {
@@ -245,7 +242,7 @@ class Slack {
         const sender = (_a = payload.sender) === null || _a === void 0 ? void 0 : _a.login;
         switch (type) {
             case 'requestReview':
-                return [`:white_check_mark: ${sender} requested your review`, ''];
+                return [`:white_check_mark: ${sender} requested your review`];
             case 'requestReviewForAuthor':
                 return [
                     `:white_check_mark: You requested ${(0, utils_1.toOxfordComma)((_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.requested_reviewers.map((v) => v['login']))}'s review`,
@@ -253,26 +250,21 @@ class Slack {
                 ];
             case 'mentionComment':
             case 'reviewMentionComment':
-                return [`:speech_balloon: ${sender} mentioned you`, ''];
+                return [`:speech_balloon: ${sender} mentioned you`];
             case 'reviewComment':
                 switch (payload.review.state) {
                     case 'approved':
-                        return [`:tada: ${sender} approved your pull request`, ''];
+                        return [`:tada: ${sender} approved your pull request`];
                     case 'changes_requested':
                         return [
                             `:bulb: ${sender} requested changes on your pull request`,
                             'IN PROGRESS'
                         ];
                     default:
-                        return [
-                            `:speech_balloon: ${sender} commented on your pull request`,
-                            ''
-                        ];
+                        return [`:speech_balloon: ${sender} commented on your pull request`];
                 }
             case 'merged':
                 return [`:white_check_mark: ${sender} merged your pull request`, 'DONE'];
-            default:
-                return ['', ''];
         }
     }
     postMessage(githubUserId, payload, type, config) {
@@ -285,11 +277,12 @@ class Slack {
                 core.info(`target user '${githubUserId}' was found: ${slackUserId}`);
                 const [text, status] = this.createText(payload, type);
                 const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
+                const reminder = status !== undefined ? Slack.makeTicketStatusReminder(status) : '';
                 const attachment = this.createBaseAttachment(payload, type);
                 core.info(`attachment: ${JSON.stringify(attachment)}`);
                 yield this.web.chat.postMessage({
                     channel: slackUserId,
-                    text: `${text}${repoInfo}${Slack.makeTicketStatusReminder(status)}`,
+                    text: `${text}${repoInfo}${reminder}`,
                     attachments: [attachment]
                 });
                 core.info(`A message is being sent to '${githubUserId}'.`);

@@ -11,6 +11,7 @@ async function handlePullRequestEvent(
 ): Promise<void> {
   const action = payload.action
   const pullRequestAuthor = payload.pull_request?.user.login
+  core.info(`Processing the detected action: '${action}' ...`)
 
   if (action === 'review_requested') {
     const requestedReviewer = payload.requested_reviewer.login
@@ -69,6 +70,7 @@ async function handleIssueEvent(
   config: Config
 ): Promise<void> {
   const action = payload.action
+  core.info(`Processing the detected action: '${action}' ...`)
 
   // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
   if (action === 'created') {

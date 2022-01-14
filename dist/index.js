@@ -43,6 +43,7 @@ function handlePullRequestEvent(payload, slack, config) {
     return __awaiter(this, void 0, void 0, function* () {
         const action = payload.action;
         const pullRequestAuthor = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
+        core.info(`Processing the detected action: '${action}' ...`);
         if (action === 'review_requested') {
             const requestedReviewer = payload.requested_reviewer.login;
             yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
@@ -84,6 +85,7 @@ function handleIssueEvent(payload, slack, config) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const action = payload.action;
+        core.info(`Processing the detected action: '${action}' ...`);
         // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
         if (action === 'created') {
             const comment = (0, utils_1.parseMentionComment)((_a = payload.comment) === null || _a === void 0 ? void 0 : _a.body);

@@ -1,5 +1,5 @@
-name: 'Notification from GitHub to Slack'
-description: 'Maintains various notifications from GitHub to Slack'
+name: 'Notify Slack'
+description: 'Send various notifications from GitHub to Slack'
 author: 'ken-matsui'
 inputs:
   slack_oauth_access_token:

@@ -38,62 +38,72 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlerList = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(918);
+function handlePullRequestReviewRequestedAction(payload, slack, config) {
+    var _a, _b, _c;
+    return __awaiter(this, void 0, void 0, function* () {
+        const requestedReviewer = (_a = payload.requested_reviewer) === null || _a === void 0 ? void 0 : _a.login;
+        yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
+        // Send a ticket reminder when an author of PR and a sender of review request are the same.
+        const prAuthor = (_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.user.login;
+        const reviewRequestSender = (_c = payload.sender) === null || _c === void 0 ? void 0 : _c.login;
+        if (prAuthor === reviewRequestSender) {
+            yield slack.postMessage(prAuthor, payload, 'requestReviewForAuthor', config);
+        }
+    });
+}
 function handlePullRequestEvent(payload, slack, config) {
-    var _a, _b, _c, _d;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         const action = payload.action;
-        const pullRequestAuthor = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
-        core.info(`Processing the detected action: '${action}' ...`);
         if (action === 'review_requested') {
-            const requestedReviewer = (_b = payload.requested_reviewer) === null || _b === void 0 ? void 0 : _b.login;
-            yield slack.postMessage(requestedReviewer, payload, 'requestReview', config);
-            // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
-            // Jiraチケットのリマインドを送信する。
-            const reviewRequestSender = (_c = payload.sender) === null || _c === void 0 ? void 0 : _c.login;
-            if (pullRequestAuthor === reviewRequestSender) {
-                yield slack.postMessage(pullRequestAuthor, payload, 'requestReviewForAuthor', config);
-            }
+            yield handlePullRequestReviewRequestedAction(payload, slack, config);
         }
-        else if (action === 'closed' && ((_d = payload.pull_request) === null || _d === void 0 ? void 0 : _d.merged)) {
-            yield slack.postMessage(pullRequestAuthor, payload, 'merged', config);
+        else if (action === 'closed' && ((_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.merged)) {
+            const prAuthor = (_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.user.login;
+            yield slack.postMessage(prAuthor, payload, 'merged', config);
         }
         else {
-            core.warning(`${action} action was not hooked`);
-            return;
+            core.warning(`'${action}' action was ignored`);
         }
     });
 }
 function handlePullRequestReviewEvent(payload, slack, config) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        // まずは、メンションがあれば、それを通知する。
-        const comment = (0, utils_1.parseMentionComment)(payload.review.body);
-        for (const mentionUser of comment.mentionUsers) {
-            yield slack.postMessage(mentionUser, payload, 'reviewMentionComment', config);
+        // First, if the comment has mentions, notify them.
+        const mentionUsers = (0, utils_1.extractUsersFromComment)(payload.review.body);
+        for (const user of mentionUsers) {
+            yield slack.postMessage(user, payload, 'reviewMentionComment', config);
         }
-        // PRのAuthorには、レビューコメントの全てをメンションする。（本人自身のレビューコメント以外）
-        // また、メンションが既にされている場合は無視する。
+        // Notify an author of PR of all review comments (without theirs).
+        // However, ignore comments if they have been already notified.
         const reviewer = payload.review.user.login;
-        const author = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
-        if (!comment.mentionUsers.includes(author) && reviewer !== author) {
-            yield slack.postMessage(author, payload, 'reviewComment', config);
+        const prAuthor = (_a = payload.pull_request) === null || _a === void 0 ? void 0 : _a.user.login;
+        if (!mentionUsers.includes(prAuthor) && reviewer !== prAuthor) {
+            yield slack.postMessage(prAuthor, payload, 'reviewComment', config);
+        }
+    });
+}
+function handleIssueCreatedAction(payload, slack, config) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const mentionUsers = (0, utils_1.extractUsersFromComment)((_a = payload.comment) === null || _a === void 0 ? void 0 : _a.body);
+        for (const user of mentionUsers) {
+            yield slack.postMessage(user, payload, 'mentionComment', config);
         }
     });
 }
 function handleIssueEvent(payload, slack, config) {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         const action = payload.action;
-        core.info(`Processing the detected action: '${action}' ...`);
-        // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
+        // TODO: If there's no mentions in the `before` and the `after` has mentions,
+        //  should this action send a notification?
         if (action === 'created') {
-            const comment = (0, utils_1.parseMentionComment)((_a = payload.comment) === null || _a === void 0 ? void 0 : _a.body);
-            for (const mentionUser of comment.mentionUsers) {
-                yield slack.postMessage(mentionUser, payload, 'mentionComment', config);
-            }
+            // || action === 'edited'
+            yield handleIssueCreatedAction(payload, slack, config);
         }
         else {
-            core.warning(`${action} action was not hooked`);
+            core.warning(`'${action}' action was ignored`);
         }
     });
 }
@@ -160,12 +170,14 @@ function run() {
                 core.warning(`The detected event type is not supported: '${eventType}'`);
                 return;
             }
-            core.info(`Processing the detected event type: '${eventType}' ...`);
             const slackApiToken = core.getInput('slack_oauth_access_token');
             const slack = new slack_1.default(slackApiToken);
             const config = getConfig();
             core.info('Configurations are successfully loaded.');
-            yield handler(github.context.payload, slack, config);
+            const payload = github.context.payload;
+            core.info(`Processing the detected event type: '${eventType}' ...`);
+            core.info(`Processing the detected action: '${payload.action}' ...`);
+            yield handler(payload, slack, config);
             core.info(`'${eventType}' event has been successfully completed.`);
         }
         catch (error) {
@@ -230,44 +242,135 @@ const utils_1 = __nccwpck_require__(918);
 const web_api_1 = __nccwpck_require__(431);
 const reviewMessageTypes = ['reviewComment', 'reviewMentionComment'];
 const commentMessageTypes = ['mentionComment', ...reviewMessageTypes];
+function makeTicketStatusReminder(status) {
+    return `\nPlease mark the related ticket(s) as *${status}*`;
+}
+function detectEventType(payload) {
+    return Object.prototype.hasOwnProperty.call(payload, 'issue')
+        ? 'issue'
+        : 'pull_request';
+}
+function chooseColor(type, payload) {
+    // '#36a64f'
+    switch (type) {
+        case 'requestReview':
+            return 'warning';
+        case 'reviewComment':
+            switch (payload.review.state) {
+                case 'approved':
+                    return 'good';
+                case 'changes_requested':
+                    return 'danger';
+                default:
+                    return '';
+            }
+        case 'merged':
+            return 'good';
+        default:
+            // mentionComment, reviewMentionComment
+            return ''; // use the default color
+    }
+}
+function chooseTitlePrefix(type, payload) {
+    switch (type) {
+        case 'mentionComment':
+        case 'reviewMentionComment':
+            return 'Comment on ';
+        case 'reviewComment':
+            switch (payload.review.state) {
+                case 'approved':
+                    return 'Approval on ';
+                case 'changes_requested':
+                    return 'Requested Changes on ';
+                case 'commented':
+                    return 'Comment on ';
+                default:
+                    return '';
+            }
+        default:
+            // requestReview, merged
+            return '';
+    }
+}
+function extractImageURL(commentBody) {
+    if (commentBody) {
+        const found = commentBody.match(/(https?:\/\/.*\.(?:png|jpg))/);
+        if (found) {
+            return found[1];
+        }
+    }
+    return '';
+}
+function createMsg(payload, type) {
+    var _a, _b;
+    const sender = (_a = payload.sender) === null || _a === void 0 ? void 0 : _a.login;
+    switch (type) {
+        case 'requestReview':
+            return [`:white_check_mark: ${sender} requested your review`];
+        case 'requestReviewForAuthor':
+            return [
+                `:white_check_mark: You requested ${(0, utils_1.toOxfordComma)((_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.requested_reviewers.map((v) => v['login']))}'s review`,
+                'REVIEW'
+            ];
+        case 'mentionComment':
+        case 'reviewMentionComment':
+            return [`:speech_balloon: ${sender} mentioned you`];
+        case 'reviewComment':
+            switch (payload.review.state) {
+                case 'approved':
+                    return [`:tada: ${sender} approved your pull request`];
+                case 'changes_requested':
+                    return [
+                        `:bulb: ${sender} requested changes on your pull request`,
+                        'IN PROGRESS'
+                    ];
+                default:
+                    return [`:speech_balloon: ${sender} commented on your pull request`];
+            }
+        case 'merged':
+            return [`:white_check_mark: ${sender} merged your pull request`, 'DONE'];
+    }
+}
 class Slack {
     constructor(token) {
         this.repositoryFullName = '';
         this.prNumber = '';
         this.web = new web_api_1.WebClient(token);
     }
-    static makeTicketStatusReminder(status) {
-        return `\nPlease mark the related ticket(s) as *${status}*`;
-    }
-    createText(payload, type) {
-        var _a, _b;
-        const sender = (_a = payload.sender) === null || _a === void 0 ? void 0 : _a.login;
-        switch (type) {
-            case 'requestReview':
-                return [`:white_check_mark: ${sender} requested your review`];
-            case 'requestReviewForAuthor':
+    createBaseAttachment(payload, type) {
+        const event = payload[`${detectEventType(payload)}`];
+        const [title_link, text, image_url] = (() => {
+            const isCommentType = commentMessageTypes.includes(type);
+            if (isCommentType) {
+                const isReviewType = reviewMessageTypes.includes(type);
+                const comment = payload[`${isReviewType ? 'review' : 'comment'}`];
                 return [
-                    `:white_check_mark: You requested ${(0, utils_1.toOxfordComma)((_b = payload.pull_request) === null || _b === void 0 ? void 0 : _b.requested_reviewers.map((v) => v['login']))}'s review`,
-                    'REVIEW'
+                    comment['html_url'],
+                    comment.body,
+                    extractImageURL(comment.body) // TODO: remove parsed image url from comment.body
                 ];
-            case 'mentionComment':
-            case 'reviewMentionComment':
-                return [`:speech_balloon: ${sender} mentioned you`];
-            case 'reviewComment':
-                switch (payload.review.state) {
-                    case 'approved':
-                        return [`:tada: ${sender} approved your pull request`];
-                    case 'changes_requested':
-                        return [
-                            `:bulb: ${sender} requested changes on your pull request`,
-                            'IN PROGRESS'
-                        ];
-                    default:
-                        return [`:speech_balloon: ${sender} commented on your pull request`];
-                }
-            case 'merged':
-                return [`:white_check_mark: ${sender} merged your pull request`, 'DONE'];
-        }
+            }
+            else {
+                return [event['html_url'], '', ''];
+            }
+        })();
+        const prNumber = `#${event['number']}`;
+        this.prNumber = prNumber;
+        const repository = payload.repository;
+        this.repositoryFullName =
+            typeof (repository === null || repository === void 0 ? void 0 : repository.full_name) === 'string' ? repository === null || repository === void 0 ? void 0 : repository.full_name : '';
+        return {
+            color: chooseColor(type, payload),
+            author_name: event.user['login'],
+            author_icon: event.user['avatar_url'],
+            title: `${chooseTitlePrefix(type, payload)}${prNumber} ${event['title']}`,
+            title_link,
+            text,
+            image_url,
+            footer_icon: 'https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png',
+            footer: `<${repository === null || repository === void 0 ? void 0 : repository.html_url}|${this.repositoryFullName}>`,
+            ts: Math.floor(Date.now() / 1000).toString()
+        };
     }
     postMessage(githubUserId, payload, type, config) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -277,10 +380,10 @@ class Slack {
                 return;
             }
             core.info(`target user '${githubUserId}' was found: ${slackUserId}`);
-            const [text, status] = this.createText(payload, type);
-            const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
-            const reminder = status !== undefined ? Slack.makeTicketStatusReminder(status) : '';
+            const [text, status] = createMsg(payload, type);
+            const reminder = status !== undefined ? makeTicketStatusReminder(status) : '';
             const attachment = this.createBaseAttachment(payload, type);
+            const repoInfo = ` on *${this.repositoryFullName} ${this.prNumber}*`;
             core.info(`attachment: ${JSON.stringify(attachment)}`);
             yield this.web.chat.postMessage({
                 channel: slackUserId,
@@ -289,85 +392,6 @@ class Slack {
             });
             core.info(`A message is being sent to '${githubUserId}'.`);
         });
-    }
-    static getEventType(payload) {
-        return Object.prototype.hasOwnProperty.call(payload, 'issue')
-            ? 'issue'
-            : 'pull_request';
-    }
-    static createAttachmentColor(type, payload) {
-        // '#36a64f'
-        switch (type) {
-            case 'requestReview':
-                return 'warning';
-            case 'reviewComment':
-                switch (payload.review.state) {
-                    case 'approved':
-                        return 'good';
-                    case 'changes_requested':
-                        return 'danger';
-                    default:
-                        return '';
-                }
-            case 'merged':
-                return 'good';
-            default:
-                // mentionComment, reviewMentionComment
-                return ''; // use the default color
-        }
-    }
-    static createAttachmentTitlePrefix(type, payload) {
-        switch (type) {
-            case 'mentionComment':
-            case 'reviewMentionComment':
-                return 'Comment on ';
-            case 'reviewComment':
-                switch (payload.review.state) {
-                    case 'approved':
-                        return 'Approval on ';
-                    case 'changes_requested':
-                        return 'Requested Changes on ';
-                    case 'commented':
-                        return 'Comment on ';
-                    default:
-                        return '';
-                }
-            default:
-                // requestReview, merged
-                return '';
-        }
-    }
-    static getImageURL(commentBody) {
-        if (commentBody) {
-            const found = commentBody.match(/(https?:\/\/.*\.(?:png|jpg))/);
-            if (found) {
-                return found[1];
-            }
-        }
-        return '';
-    }
-    createBaseAttachment(payload, type) {
-        const isReviewType = reviewMessageTypes.includes(type);
-        const isCommentType = commentMessageTypes.includes(type);
-        const event = payload[`${Slack.getEventType(payload)}`];
-        const comment = payload[`${isReviewType ? 'review' : 'comment'}`];
-        const user = event.user;
-        const repository = payload.repository;
-        this.prNumber = `#${event['number']}`;
-        this.repositoryFullName =
-            typeof (repository === null || repository === void 0 ? void 0 : repository.full_name) === 'string' ? repository === null || repository === void 0 ? void 0 : repository.full_name : '';
-        return {
-            color: Slack.createAttachmentColor(type, payload),
-            author_name: user['login'],
-            author_icon: user['avatar_url'],
-            title: `${Slack.createAttachmentTitlePrefix(type, payload)}${this.prNumber} ${event['title']}`,
-            title_link: isCommentType ? comment['html_url'] : event['html_url'],
-            text: isCommentType ? comment.body : '',
-            image_url: isCommentType ? Slack.getImageURL(comment.body) : '',
-            footer_icon: 'https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png',
-            footer: `<${repository === null || repository === void 0 ? void 0 : repository.html_url}|${this.repositoryFullName}>`,
-            ts: Math.floor(Date.now() / 1000).toString()
-        };
     }
 }
 exports["default"] = Slack;
@@ -381,9 +405,9 @@ exports["default"] = Slack;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.toOxfordComma = exports.parseMentionComment = exports.getSlackUserId = void 0;
-function getSlackUserId(githubUser, users) {
-    const user = users.find(u => u.github === githubUser);
+exports.toOxfordComma = exports.extractUsersFromComment = exports.getSlackUserId = void 0;
+function getSlackUserId(githubId, users) {
+    const user = users.find(u => u.github === githubId);
     if (user !== undefined) {
         return user['slack'];
     }
@@ -393,17 +417,18 @@ exports.getSlackUserId = getSlackUserId;
 function removeDuplicates(array) {
     return [...new Set(array)];
 }
-function parseMentionComment(body) {
-    let mentionUsers = [];
+function extractUsersFromComment(body) {
     if (body) {
+        let mentionUsers = [];
         const matches = body.match(/@([a-zA-Z0-9_-]+)/g);
         if (matches !== null) {
             mentionUsers = matches.map(match => match.slice(1)) || [];
         }
+        return removeDuplicates(mentionUsers);
     }
-    return { mentionUsers: removeDuplicates(mentionUsers) };
+    return [];
 }
-exports.parseMentionComment = parseMentionComment;
+exports.extractUsersFromComment = extractUsersFromComment;
 // ref: https://gist.github.com/JamieMason/c1a089f6f1f147dbe9f82cb3e25cd12e
 function toOxfordComma(array) {
     return array.length > 2

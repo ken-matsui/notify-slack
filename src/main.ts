@@ -16,14 +16,16 @@ async function run(): Promise<void> {
       core.warning(`The detected event type is not supported: '${eventType}'`)
       return
     }
-    core.info(`Processing the detected event type: '${eventType}' ...`)
 
     const slackApiToken = core.getInput('slack_oauth_access_token')
     const slack = new Slack(slackApiToken)
     const config = getConfig()
     core.info('Configurations are successfully loaded.')
 
-    await handler(github.context.payload, slack, config)
+    const payload = github.context.payload
+    core.info(`Processing the detected event type: '${eventType}' ...`)
+    core.info(`Processing the detected action: '${payload.action}' ...`)
+    await handler(payload, slack, config)
     core.info(`'${eventType}' event has been successfully completed.`)
   } catch (error: unknown) {
     if (error instanceof Error) {

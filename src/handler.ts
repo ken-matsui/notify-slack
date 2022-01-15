@@ -2,7 +2,23 @@ import * as core from '@actions/core'
 import {Config} from './types'
 import Slack from './slack'
 import {WebhookPayload} from '@actions/github/lib/interfaces'
-import {parseMentionComment} from './utils'
+import {extractUsersFromComment} from './utils'
+
+async function handlePullRequestReviewRequestedAction(
+  payload: WebhookPayload,
+  slack: Slack,
+  config: Config
+): Promise<void> {
+  const requestedReviewer = payload.requested_reviewer?.login
+  await slack.postMessage(requestedReviewer, payload, 'requestReview', config)
+
+  // Send a ticket reminder when an author of PR and a sender of review request are the same.
+  const prAuthor = payload.pull_request?.user.login
+  const reviewRequestSender = payload.sender?.login
+  if (prAuthor === reviewRequestSender) {
+    await slack.postMessage(prAuthor, payload, 'requestReviewForAuthor', config)
+  }
+}
 
 async function handlePullRequestEvent(
   payload: WebhookPayload,
@@ -10,29 +26,14 @@ async function handlePullRequestEvent(
   config: Config
 ): Promise<void> {
   const action = payload.action
-  const pullRequestAuthor = payload.pull_request?.user.login
-  core.info(`Processing the detected action: '${action}' ...`)
 
   if (action === 'review_requested') {
-    const requestedReviewer = payload.requested_reviewer?.login
-    await slack.postMessage(requestedReviewer, payload, 'requestReview', config)
-
-    // Pull Requestの作成者とReview Requestの送信者が同じ場合のみ、
-    // Jiraチケットのリマインドを送信する。
-    const reviewRequestSender = payload.sender?.login
-    if (pullRequestAuthor === reviewRequestSender) {
-      await slack.postMessage(
-        pullRequestAuthor,
-        payload,
-        'requestReviewForAuthor',
-        config
-      )
-    }
+    await handlePullRequestReviewRequestedAction(payload, slack, config)
   } else if (action === 'closed' && payload.pull_request?.merged) {
-    await slack.postMessage(pullRequestAuthor, payload, 'merged', config)
+    const prAuthor = payload.pull_request?.user.login
+    await slack.postMessage(prAuthor, payload, 'merged', config)
   } else {
-    core.warning(`${action} action was not hooked`)
-    return
+    core.warning(`'${action}' action was ignored`)
   }
 }
 
@@ -41,23 +42,29 @@ async function handlePullRequestReviewEvent(
   slack: Slack,
   config: Config
 ): Promise<void> {
-  // まずは、メンションがあれば、それを通知する。
-  const comment = parseMentionComment(payload.review.body)
-  for (const mentionUser of comment.mentionUsers) {
-    await slack.postMessage(
-      mentionUser,
-      payload,
-      'reviewMentionComment',
-      config
-    )
+  // First, if the comment has mentions, notify them.
+  const mentionUsers = extractUsersFromComment(payload.review.body)
+  for (const user of mentionUsers) {
+    await slack.postMessage(user, payload, 'reviewMentionComment', config)
   }
 
-  // PRのAuthorには、レビューコメントの全てをメンションする。（本人自身のレビューコメント以外）
-  // また、メンションが既にされている場合は無視する。
+  // Notify an author of PR of all review comments (without theirs).
+  // However, ignore comments if they have been already notified.
   const reviewer = payload.review.user.login
-  const author = payload.pull_request?.user.login
-  if (!comment.mentionUsers.includes(author) && reviewer !== author) {
-    await slack.postMessage(author, payload, 'reviewComment', config)
+  const prAuthor = payload.pull_request?.user.login
+  if (!mentionUsers.includes(prAuthor) && reviewer !== prAuthor) {
+    await slack.postMessage(prAuthor, payload, 'reviewComment', config)
+  }
+}
+
+async function handleIssueCreatedAction(
+  payload: WebhookPayload,
+  slack: Slack,
+  config: Config
+): Promise<void> {
+  const mentionUsers = extractUsersFromComment(payload.comment?.body)
+  for (const user of mentionUsers) {
+    await slack.postMessage(user, payload, 'mentionComment', config)
   }
 }
 
@@ -67,16 +74,14 @@ async function handleIssueEvent(
   config: Config
 ): Promise<void> {
   const action = payload.action
-  core.info(`Processing the detected action: '${action}' ...`)
 
-  // || action === 'edited'  TODO: もし、beforeにメンションが無く、afterにあれば、メンションする？
+  // TODO: If there's no mentions in the `before` and the `after` has mentions,
+  //  should this action send a notification?
   if (action === 'created') {
-    const comment = parseMentionComment(payload.comment?.body)
-    for (const mentionUser of comment.mentionUsers) {
-      await slack.postMessage(mentionUser, payload, 'mentionComment', config)
-    }
+    // || action === 'edited'
+    await handleIssueCreatedAction(payload, slack, config)
   } else {
-    core.warning(`${action} action was not hooked`)
+    core.warning(`'${action}' action was ignored`)
   }
 }
 

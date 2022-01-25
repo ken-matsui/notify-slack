@@ -25,6 +25,10 @@ Developers
 6. Create a token
 7. Copy the OAuth access token
 
+### How to find a Slack user ID
+
+See https://www.workast.com/help/articles/61000165203/.
+
 ### `userlist.toml`
 
 `.github/userlist.toml`

@@ -69,7 +69,7 @@ jobs:
           slack_oauth_access_token: ${{ secrets.SLACK_OAUTH_ACCESS_TOKEN }}
 ```
 
-## Code in Main
+## Contributing
 
 > First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
 
@@ -83,6 +83,7 @@ Build the typescript and package it for distribution
 $ npm run build && npm run package
 ```
 
+<!--
 Run the tests :heavy_check_mark:
 ```bash
 $ npm test
@@ -94,6 +95,7 @@ $ npm test
 
 ...
 ```
+-->
 
 ## Publish to a distribution branch
 

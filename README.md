@@ -54,35 +54,11 @@ Send various notifications from GitHub to Slack.
     > [**#1 Testing Notifications**](https://github.com/ken-matsui/notify-slack/pull/1)<br/>
     > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png" width="15" height="15" /> [ken-matsui/notify-slack](https://github.com/ken-matsui/notify-slack) | Jan 6th
 
-## Configuration
-
-### How to obtain OAuth token of Slack App
-
-1. Go to [Your Apps](https://api.slack.com/apps)
-2. Click the Create New App
-3. Input App Name and Development Slack Workspace
-4. Select Permissions in Add features and functionality
-5. Add `chat:write:bot` in Permission Scopes
-6. Create a token
-7. Copy the OAuth access token
-
-### How to find a Slack user ID
-
-See https://www.workast.com/help/articles/61000165203/.
-
-### `userlist.toml`
-
-`.github/userlist.toml`
-
-```toml
-[[users]]
-github = "ken-matsui"
-slack = "UXXXXXXXXXX"
-```
-
 ## Usage
 
-### Workflow file
+You will need to prepare two files on your repository which you want to configure.
+
+### 1. Workflow file
 
 `.github/workflows/notify-slack.yml`
 
@@ -107,6 +83,32 @@ jobs:
         with:
           slack_oauth_access_token: ${{ secrets.SLACK_OAUTH_ACCESS_TOKEN }}
 ```
+
+### 2. User list file
+
+`.github/userlist.toml`
+
+```toml
+[[users]]
+github = "ken-matsui"
+slack = "UXXXXXXXXXX"
+```
+
+## Frequently Asked Questions
+
+### How to obtain an OAuth token of a Slack App?
+
+1. Go to [Your Apps](https://api.slack.com/apps)
+2. Click the Create New App
+3. Input App Name and Development Slack Workspace
+4. Select Permissions in Add features and functionality
+5. Add `chat:write:bot` in Permission Scopes
+6. Create a token
+7. Copy the OAuth access token
+
+### How to find a Slack user ID?
+
+See https://www.workast.com/help/articles/61000165203/.
 
 ## Contributing
 
@@ -136,7 +138,7 @@ $ npm test
 ```
 -->
 
-## Publish to a distribution branch
+### Publish to a distribution branch
 
 Actions are run from GitHub repos so we will checkin the packed dist folder.
 

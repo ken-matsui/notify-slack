@@ -1,6 +1,6 @@
 # notify-slack
 
-Send various notifications from GitHub to Slack.
+Send various notifications, which are mentions, review requests, review results, and so on, on GitHub to Slack.
 
 ## Message Examples on Slack
 

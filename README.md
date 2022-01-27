@@ -38,7 +38,7 @@ Send various notifications from GitHub to Slack.
     * :bulb: ken-matsui-reviewer requested changes on your pull request on **ken-matsui/notify-slack #1**<br/>
       Please mark the related ticket(s) as **IN PROGRESS**
       > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F26405363%3Fv%3D4" width="15" height="15" /> **ken-matsui-developer**<br/>
-      > [Requested Changes #1 Testing Notifications](https://github.com/ken-matsui/notify-slack/pull/1)<br/>
+      > [Requested Changes on #1 Testing Notifications](https://github.com/ken-matsui/notify-slack/pull/1)<br/>
       > I would prefer the first line to be like the following.<br/>
       > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png" width="15" height="15" /> [ken-matsui/notify-slack](https://github.com/ken-matsui/notify-slack) | Jan 6th
   * commented

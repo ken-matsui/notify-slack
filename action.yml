@@ -1,5 +1,5 @@
 name: 'Notify works on GitHub to Slack'
-description: 'Send various notifications, which are mentions, review requests, review results, and so on, related to pull requests and issues from GitHub to Slack'
+description: 'Send various notifications, which are mentions, review requests, review results, and so on, on GitHub to Slack'
 author: 'ken-matsui'
 inputs:
   slack_oauth_access_token:

@@ -28,7 +28,7 @@ Send various notifications from GitHub to Slack.
     > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F26405363%3Fv%3D4" width="15" height="15" /> **ken-matsui-developer**<br/>
     > [#1 Testing Notifications](https://github.com/ken-matsui/notify-slack/pull/1)<br/>
     > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png" width="15" height="15" /> [ken-matsui/notify-slack](https://github.com/ken-matsui/notify-slack) | Jan 6th
-* A reviewer has (on a developer's PR):
+* Received a review on a developer's PR as:
   * approved
     * :tada: ken-matsui-reviewer approved your pull request on **ken-matsui/notify-slack #1**
       > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F26405363%3Fv%3D4" width="15" height="15" /> **ken-matsui-developer**<br/>
@@ -47,7 +47,7 @@ Send various notifications from GitHub to Slack.
       > [Comment on #1 Testing Notifications](https://github.com/ken-matsui/notify-slack/pull/1)<br/>
       > Is this a typo?<br/>
       > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Fslack.github.com%2Fstatic%2Fimg%2Ffavicon-neutral.png" width="15" height="15" /> [ken-matsui/notify-slack](https://github.com/ken-matsui/notify-slack) | Jan 6th
-* Developer's PR has been merged
+* A developer's PR has been merged
   * :white_check_mark: ken-matsui-reviewer merged your pull request on **ken-matsui/notify-slack #1**<br/>
     Please mark the related ticket(s) as **DONE**<br/>
     > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F26405363%3Fv%3D4" width="15" height="15" /> **ken-matsui-developer**<br/>

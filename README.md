@@ -4,7 +4,9 @@ Send various notifications from GitHub to Slack.
 
 ## Message Examples on Slack
 
-### All (specified in `userlist.toml`) users
+Users only specified in `userlist.toml` will be notified through Slack.
+
+### All types of users
 * Received a mention on a PR or an issue
   * :speech_balloon: ken-matsui-developer mentioned you on **ken-matsui/notify-slack #1**<br/>
     > <img src="https://slack-imgs.com/?c=1&o1=wi32.he32.si&url=https%3A%2F%2Favatars.githubusercontent.com%2Fu%2F26405363%3Fv%3D4" width="15" height="15" /> **ken-matsui-developer**<br/>

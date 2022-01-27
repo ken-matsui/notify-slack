@@ -94,23 +94,34 @@ jobs:
 [[users]]
 github = "ken-matsui"
 slack = "UXXXXXXXXXX"
+
+[[users]]
+github = "ken-matsui-2"
+slack = "UXXXXXXXXXX"
 ```
 
 ## Frequently Asked Questions
 
 ### How to obtain an OAuth token of a Slack App?
 
-1. Go to [Your Apps](https://api.slack.com/apps)
-2. Click the Create New App
-3. Input App Name and Development Slack Workspace
-4. Select Permissions in Add features and functionality
-5. Add `chat:write:bot` in Permission Scopes
-6. Create a token
-7. Copy the OAuth access token
+1. Go to [Your Apps](https://api.slack.com/apps) on slack.com
+2. Click `Create New App`, and select `From scratch`
+4. Input `App Name` (e.g. `GitHub Notification`), and select `Development Slack Workspace`
+5. Click `Create App`
+6. Expand `Add features and functionality` in `Building Apps for Slack`, and click `Permissions`
+7. Go to the `Scopes` section, and click `Add an OAuth Scope` in `Bot Token Scopes`
+8. Select `chat:write`
+9. Go on the top of the current page, and click `Install to Workspace` on the `OAuth Tokens for Your Workspace` section
+10. Click `Allow`
+12. Copy an OAuth access token shown as `Bot User OAuth Token`
 
 ### How to find a Slack user ID?
 
 See https://www.workast.com/help/articles/61000165203/.
+
+### Are there any inputs and outputs?
+
+This action has only a `slack_oauth_access_token` input and no outputs.
 
 ## Contributing
 

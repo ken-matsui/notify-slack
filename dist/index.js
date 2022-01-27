@@ -5018,6 +5018,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUserAgent = exports.addAppMetadata = void 0;
 const os = __importStar(__nccwpck_require__(2037));
+const path_1 = __nccwpck_require__(1017);
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs
 const packageJson = __nccwpck_require__(9087);
 /**
@@ -5026,8 +5027,14 @@ const packageJson = __nccwpck_require__(9087);
 function replaceSlashes(s) {
     return s.replace('/', ':');
 }
+// TODO: for the deno build (see the `npm run build:deno` npm run script), we could replace the `os-browserify` npm
+// module shim with our own shim leveraging the deno beta compatibility layer for node's `os` module (for more info
+// see https://deno.land/std@0.116.0/node/os.ts). At the time of writing this TODO (2021/11/25), this required deno
+// v1.16.2 and use of the --unstable flag. Once support for this exists without the --unstable flag, we can improve
+// the `os` module deno shim to correctly report operating system from a deno runtime. Until then, the below `os`-
+// based code will report "browser/undefined" from a deno runtime.
 const baseUserAgent = `${replaceSlashes(packageJson.name)}/${packageJson.version} ` +
-    `node/${process.version.replace('v', '')} ` +
+    `${(0, path_1.basename)(process.title)}/${process.version.replace('v', '')} ` +
     `${os.platform()}/${os.release()}`;
 const appMetadata = {};
 /**
@@ -5138,6 +5145,7 @@ class Methods extends eventemitter3_1.EventEmitter {
                 },
                 clearResolution: bindApiCall(this, 'admin.apps.clearResolution'),
                 requests: {
+                    cancel: bindApiCall(this, 'admin.apps.requests.cancel'),
                     list: bindApiCall(this, 'admin.apps.requests.list'),
                 },
                 restrict: bindApiCall(this, 'admin.apps.restrict'),
@@ -6122,8 +6130,10 @@ module.exports = function httpAdapter(config) {
       done();
       resolvePromise(value);
     };
+    var rejected = false;
     var reject = function reject(value) {
       done();
+      rejected = true;
       rejectPromise(value);
     };
     var data = config.data;
@@ -6159,6 +6169,10 @@ module.exports = function httpAdapter(config) {
           'Data after transformation must be a string, an ArrayBuffer, a Buffer, or a Stream',
           config
         ));
+      }
+
+      if (config.maxBodyLength > -1 && data.length > config.maxBodyLength) {
+        return reject(createError('Request body larger than maxBodyLength limit', config));
       }
 
       // Add Content-Length header if data exists
@@ -6331,10 +6345,20 @@ module.exports = function httpAdapter(config) {
 
           // make sure the content length is not over the maxContentLength if specified
           if (config.maxContentLength > -1 && totalResponseBytes > config.maxContentLength) {
+            // stream.destoy() emit aborted event before calling reject() on Node.js v16
+            rejected = true;
             stream.destroy();
             reject(createError('maxContentLength size of ' + config.maxContentLength + ' exceeded',
               config, null, lastRequest));
           }
+        });
+
+        stream.on('aborted', function handlerStreamAborted() {
+          if (rejected) {
+            return;
+          }
+          stream.destroy();
+          reject(createError('error request aborted', config, 'ERR_REQUEST_ABORTED', lastRequest));
         });
 
         stream.on('error', function handleStreamError(err) {
@@ -6343,15 +6367,18 @@ module.exports = function httpAdapter(config) {
         });
 
         stream.on('end', function handleStreamEnd() {
-          var responseData = Buffer.concat(responseBuffer);
-          if (config.responseType !== 'arraybuffer') {
-            responseData = responseData.toString(config.responseEncoding);
-            if (!config.responseEncoding || config.responseEncoding === 'utf8') {
-              responseData = utils.stripBOM(responseData);
+          try {
+            var responseData = responseBuffer.length === 1 ? responseBuffer[0] : Buffer.concat(responseBuffer);
+            if (config.responseType !== 'arraybuffer') {
+              responseData = responseData.toString(config.responseEncoding);
+              if (!config.responseEncoding || config.responseEncoding === 'utf8') {
+                responseData = utils.stripBOM(responseData);
+              }
             }
+            response.data = responseData;
+          } catch (err) {
+            reject(enhanceError(err, config, err.code, response.request, response));
           }
-
-          response.data = responseData;
           settle(resolve, reject, response);
         });
       }
@@ -6361,6 +6388,12 @@ module.exports = function httpAdapter(config) {
     req.on('error', function handleRequestError(err) {
       if (req.aborted && err.code !== 'ERR_FR_TOO_MANY_REDIRECTS') return;
       reject(enhanceError(err, config, null, req));
+    });
+
+    // set tcp keep alive to prevent drop connection by peer
+    req.on('socket', function handleRequestSocket(socket) {
+      // default interval of sending ack packet is 1 minute
+      socket.setKeepAlive(true, 1000 * 60);
     });
 
     // Handle request timeout
@@ -6911,14 +6944,18 @@ function Axios(instanceConfig) {
  *
  * @param {Object} config The config specific for this request (merged with this.defaults)
  */
-Axios.prototype.request = function request(config) {
+Axios.prototype.request = function request(configOrUrl, config) {
   /*eslint no-param-reassign:0*/
   // Allow for axios('example/url'[, config]) a la fetch API
-  if (typeof config === 'string') {
-    config = arguments[1] || {};
-    config.url = arguments[0];
-  } else {
+  if (typeof configOrUrl === 'string') {
     config = config || {};
+    config.url = configOrUrl;
+  } else {
+    config = configOrUrl || {};
+  }
+
+  if (!config.url) {
+    throw new Error('Provided config url is not valid');
   }
 
   config = mergeConfig(this.defaults, config);
@@ -7003,6 +7040,9 @@ Axios.prototype.request = function request(config) {
 };
 
 Axios.prototype.getUri = function getUri(config) {
+  if (!config.url) {
+    throw new Error('Provided config url is not valid');
+  }
   config = mergeConfig(this.defaults, config);
   return buildURL(config.url, config.params, config.paramsSerializer).replace(/^\?/, '');
 };
@@ -7613,7 +7653,7 @@ module.exports = defaults;
 /***/ ((module) => {
 
 module.exports = {
-  "version": "0.24.0"
+  "version": "0.25.0"
 };
 
 /***/ }),
@@ -7814,17 +7854,19 @@ module.exports = function isAbsoluteURL(url) {
   // A URL is considered absolute if it begins with "<scheme>://" or "//" (protocol-relative URL).
   // RFC 3986 defines scheme name as a sequence of characters beginning with a letter and followed
   // by any combination of letters, digits, plus, period, or hyphen.
-  return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url);
+  return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 };
 
 
 /***/ }),
 
 /***/ 650:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 "use strict";
 
+
+var utils = __nccwpck_require__(328);
 
 /**
  * Determines whether the payload is an error thrown by Axios
@@ -7833,7 +7875,7 @@ module.exports = function isAbsoluteURL(url) {
  * @returns {boolean} True if the payload is an error thrown by Axios, otherwise false
  */
 module.exports = function isAxiosError(payload) {
-  return (typeof payload === 'object') && (payload.isAxiosError === true);
+  return utils.isObject(payload) && (payload.isAxiosError === true);
 };
 
 
@@ -8140,7 +8182,7 @@ var toString = Object.prototype.toString;
  * @returns {boolean} True if value is an Array, otherwise false
  */
 function isArray(val) {
-  return toString.call(val) === '[object Array]';
+  return Array.isArray(val);
 }
 
 /**
@@ -8181,7 +8223,7 @@ function isArrayBuffer(val) {
  * @returns {boolean} True if value is an FormData, otherwise false
  */
 function isFormData(val) {
-  return (typeof FormData !== 'undefined') && (val instanceof FormData);
+  return toString.call(val) === '[object FormData]';
 }
 
 /**
@@ -8195,7 +8237,7 @@ function isArrayBufferView(val) {
   if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
     result = ArrayBuffer.isView(val);
   } else {
-    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
+    result = (val) && (val.buffer) && (isArrayBuffer(val.buffer));
   }
   return result;
 }
@@ -8302,7 +8344,7 @@ function isStream(val) {
  * @returns {boolean} True if value is a URLSearchParams object, otherwise false
  */
 function isURLSearchParams(val) {
-  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+  return toString.call(val) === '[object URLSearchParams]';
 }
 
 /**
@@ -10619,9 +10661,9 @@ RedirectableRequest.prototype._processResponse = function (response) {
     var redirectUrlParts = url.parse(redirectUrl);
     Object.assign(this._options, redirectUrlParts);
 
-    // Drop the Authorization header if redirecting to another domain
+    // Drop the confidential headers when redirecting to another domain
     if (!(redirectUrlParts.host === currentHost || isSubdomainOf(redirectUrlParts.host, currentHost))) {
-      removeMatchingHeaders(/^authorization$/i, this._options.headers);
+      removeMatchingHeaders(/^(?:authorization|cookie)$/i, this._options.headers);
     }
 
     // Evaluate the beforeRedirect callback
@@ -21557,7 +21599,7 @@ module.exports = require("zlib");
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"@slack/web-api","version":"6.5.1","description":"Official library for using the Slack Platform\'s Web API","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","web-api","bot","client","http","api","proxy","rate-limiting","pagination"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 12.13.0","npm":">= 6.12.0"},"repository":"slackapi/node-slack-sdk","homepage":"https://slack.dev/node-slack-sdk/web-api","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"prepare":"npm run build","build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist ./coverage ./.nyc_output","lint":"eslint --ext .ts src","test":"npm run lint && npm run build && npm run test:mocha && npm run test:types","test:mocha":"nyc mocha --config .mocharc.json src/*.spec.js","test:types":"tsd","coverage":"codecov -F webapi --root=$PWD","ref-docs:model":"api-extractor run","watch":"npx nodemon --watch \'src\' --ext \'ts\' --exec npm run build","build:deno":"esbuild --bundle --define:process.cwd=String --define:process.version=\'\\"v16.0.0\\"\' --define:Buffer=dummy_buffer --inject:./deno-shims/buffer-shim.js --target=esnext --format=esm --outfile=./mod.js src/index.ts"},"dependencies":{"@slack/logger":"^3.0.0","@slack/types":"^2.0.0","@types/is-stream":"^1.1.0","@types/node":">=12.0.0","axios":"^0.24.0","eventemitter3":"^3.1.0","form-data":"^2.5.0","is-stream":"^1.1.0","p-queue":"^6.6.1","p-retry":"^4.0.0","is-electron":"2.2.0"},"devDependencies":{"@aoberoi/capture-console":"^1.1.0","@microsoft/api-extractor":"^7.3.4","@types/chai":"^4.1.7","@types/mocha":"^5.2.6","@typescript-eslint/eslint-plugin":"^4.4.1","@typescript-eslint/parser":"^4.4.0","busboy":"^0.3.0","chai":"^4.2.0","codecov":"^3.2.0","esbuild":"^0.13.15","eslint":"^7.32.0","eslint-config-airbnb-base":"^14.2.1","eslint-config-airbnb-typescript":"^12.3.1","eslint-plugin-import":"^2.22.1","eslint-plugin-jsdoc":"^30.6.1","eslint-plugin-node":"^11.1.0","mocha":"^9.1.0","nock":"^13.1.0","nyc":"^14.1.1","shelljs":"^0.8.3","shx":"^0.3.2","sinon":"^7.2.7","source-map-support":"^0.5.10","ts-node":"^9.0.0","tsd":"^0.13.1","typescript":"^4.1"},"tsd":{"directory":"test/types"}}');
+module.exports = JSON.parse('{"name":"@slack/web-api","version":"6.6.0","description":"Official library for using the Slack Platform\'s Web API","author":"Slack Technologies, LLC","license":"MIT","keywords":["slack","web-api","bot","client","http","api","proxy","rate-limiting","pagination"],"main":"dist/index.js","types":"./dist/index.d.ts","files":["dist/**/*"],"engines":{"node":">= 12.13.0","npm":">= 6.12.0"},"repository":"slackapi/node-slack-sdk","homepage":"https://slack.dev/node-slack-sdk/web-api","publishConfig":{"access":"public"},"bugs":{"url":"https://github.com/slackapi/node-slack-sdk/issues"},"scripts":{"prepare":"npm run build","build":"npm run build:clean && tsc","build:clean":"shx rm -rf ./dist ./coverage ./.nyc_output","lint":"eslint --ext .ts src","test":"npm run lint && npm run build && npm run test:mocha && npm run test:types","test:mocha":"nyc mocha --config .mocharc.json src/*.spec.js","test:types":"tsd","coverage":"codecov -F webapi --root=$PWD","ref-docs:model":"api-extractor run","watch":"npx nodemon --watch \'src\' --ext \'ts\' --exec npm run build","build:deno":"esbuild --bundle --define:process.cwd=String --define:process.version=\'\\"v1.15.2\\"\' --define:process.title=\'\\"deno\\"\' --define:Buffer=dummy_buffer --inject:./deno-shims/buffer-shim.js --inject:./deno-shims/xhr-shim.js --target=esnext --format=esm --outfile=./mod.js src/index.ts"},"dependencies":{"@slack/logger":"^3.0.0","@slack/types":"^2.0.0","@types/is-stream":"^1.1.0","@types/node":">=12.0.0","axios":"^0.25.0","eventemitter3":"^3.1.0","form-data":"^2.5.0","is-electron":"2.2.0","is-stream":"^1.1.0","p-queue":"^6.6.1","p-retry":"^4.0.0"},"devDependencies":{"@aoberoi/capture-console":"^1.1.0","@microsoft/api-extractor":"^7.3.4","@types/chai":"^4.1.7","@types/mocha":"^5.2.6","@typescript-eslint/eslint-plugin":"^4.4.1","@typescript-eslint/parser":"^4.4.0","busboy":"^0.3.0","chai":"^4.2.0","codecov":"^3.2.0","esbuild":"^0.13.15","eslint":"^7.32.0","eslint-config-airbnb-base":"^14.2.1","eslint-config-airbnb-typescript":"^12.3.1","eslint-plugin-import":"^2.22.1","eslint-plugin-jsdoc":"^30.6.1","eslint-plugin-node":"^11.1.0","mocha":"^9.1.0","nock":"^13.1.0","nyc":"^15.1.0","shelljs":"^0.8.3","shx":"^0.3.2","sinon":"^7.2.7","source-map-support":"^0.5.10","ts-node":"^9.0.0","tsd":"^0.13.1","typescript":"^4.1"},"tsd":{"directory":"test/types"}}');
 
 /***/ }),
 

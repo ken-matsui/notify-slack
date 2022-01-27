@@ -1,5 +1,5 @@
-name: 'Notify Slack'
-description: 'Send various notifications from GitHub to Slack'
+name: 'Notify works to Slack'
+description: 'Send various notifications along with works, which are mentions, review requests, review results, and so on, related to pull requests and issues from GitHub to Slack'
 author: 'ken-matsui'
 inputs:
   slack_oauth_access_token:
@@ -8,3 +8,6 @@ inputs:
 runs:
   using: 'node12'
   main: 'dist/index.js'
+branding:
+  icon: 'at-sign'  
+  color: 'green'

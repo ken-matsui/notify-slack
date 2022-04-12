@@ -107,7 +107,7 @@ slack = "UXXXXXXXXXX"
 
 1. Go to [Your Apps](https://api.slack.com/apps) on slack.com
 2. Click `Create New App`, and select `From scratch`
-4. Input `App Name` (e.g. `GitHub Notification`), and select `Development Slack Workspace`
+4. Input `App Name` (e.g. `GitHub Notification`), and select your workspace
 5. Click `Create App`
 6. Expand `Add features and functionality` in `Building Apps for Slack`, and click `Permissions`
 7. Go to the `Scopes` section, and click `Add an OAuth Scope` in `Bot Token Scopes`

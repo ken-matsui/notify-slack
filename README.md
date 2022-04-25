@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: ken-matsui/notify-slack@v1.0.0
+      - uses: ken-matsui/notify-slack@v1.0.1
         with:
           slack_oauth_access_token: ${{ secrets.SLACK_OAUTH_ACCESS_TOKEN }}
 ```

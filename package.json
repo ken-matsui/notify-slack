@@ -27,10 +27,11 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
-    "@slack/web-api": "^6.7.2",
+    "@slack/web-api": "^6.8.0",
     "toml": "^3.0.0"
   },
   "devDependencies": {
+    "@slack/types": "^2.8.0",
     "@types/node": "^18.11.9",
     "@typescript-eslint/parser": "^5.45.0",
     "@vercel/ncc": "^0.34.0",
@@ -45,8 +46,13 @@
   },
   "jest": {
     "clearMocks": true,
-    "moduleFileExtensions": ["js", "ts"],
-    "testMatch": ["**/*.test.ts"],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "testMatch": [
+      "**/*.test.ts"
+    ],
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },

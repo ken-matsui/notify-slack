@@ -14,10 +14,10 @@ type MessageType =
   | 'reviewComment'
 
 const reviewMessageTypes = ['reviewComment', 'reviewMentionComment'] as const
-type ReviewMessage = Extends<MessageType, typeof reviewMessageTypes[number]>
+type ReviewMessage = Extends<MessageType, (typeof reviewMessageTypes)[number]>
 
 const commentMessageTypes = ['mentionComment', ...reviewMessageTypes] as const
-type CommentMessage = Extends<MessageType, typeof commentMessageTypes[number]>
+type CommentMessage = Extends<MessageType, (typeof commentMessageTypes)[number]>
 
 type Status = 'IN PROGRESS' | 'REVIEW' | 'DONE'
 

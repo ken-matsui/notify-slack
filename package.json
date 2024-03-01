@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@slack/types": "^2.9.0",
-    "@types/node": "^20.11.14",
+    "@types/node": "^20.11.24",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/ncc": "^0.38.1",
     "eslint": "^8.56.0",

@@ -31,7 +31,7 @@
     "toml": "^3.0.0"
   },
   "devDependencies": {
-    "@slack/types": "^2.9.0",
+    "@slack/types": "^2.12.0",
     "@types/node": "^20.14.9",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/ncc": "^0.38.1",

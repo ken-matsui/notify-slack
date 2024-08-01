@@ -9,3 +9,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    groups:
+      npm:
+        update-types:
+        - "minor"
+        - "patch"

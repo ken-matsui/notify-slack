@@ -1,10 +1,10 @@
 export type Config = {
-  users: User[]
-}
+	users: User[];
+};
 
 export type User = {
-  github: string
-  slack: string
-}
+	github: string;
+	slack: string;
+};
 
-export type Extends<T, U extends T> = U
+export type Extends<T, U extends T> = U;

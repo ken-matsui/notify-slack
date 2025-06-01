@@ -24,14 +24,14 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "@slack/web-api": "^7.9.1",
+    "@actions/github": "^6.0.1",
+    "@slack/web-api": "^7.9.2",
     "toml": "^3.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@slack/types": "^2.14.0",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.29",
     "@vercel/ncc": "^0.38.3",
     "js-yaml": "^4.1.0",
     "typescript": "^5.8.3"

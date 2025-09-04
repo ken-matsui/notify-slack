@@ -1,6 +1,6 @@
-import * as fs from "fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import * as fs from "fs";
 import toml from "toml";
 import { type HandlerType, handlerList } from "./handler";
 import Slack from "./slack";

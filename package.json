@@ -1,39 +1,39 @@
 {
-  "name": "notify-slack",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Send various notifications from GitHub to Slack",
-  "main": "lib/main.js",
-  "scripts": {
-    "build": "tsc",
-    "format": "biome format --write src",
-    "check": "biome check src",
-    "package": "ncc build --source-map --license licenses.txt",
-    "all": "npm run build && npm run check && npm run package"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ken-matsui/notify-slack.git"
-  },
-  "keywords": [
-    "actions",
-    "github",
-    "slack"
-  ],
-  "author": "Ken Matsui <26405363+ken-matsui@users.noreply.github.com>",
-  "license": "MIT",
-  "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1",
-    "@slack/web-api": "^7.10.0",
-    "toml": "^3.0.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@slack/types": "^2.16.0",
-    "@types/node": "^24.3.0",
-    "@vercel/ncc": "^0.38.3",
-    "js-yaml": "^4.1.0",
-    "typescript": "^5.9.2"
-  }
+	"name": "notify-slack",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Send various notifications from GitHub to Slack",
+	"main": "lib/main.js",
+	"scripts": {
+		"build": "tsc",
+		"format": "biome format --write src",
+		"check": "biome check src",
+		"package": "ncc build --source-map --license licenses.txt",
+		"all": "npm run build && npm run check && npm run package"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ken-matsui/notify-slack.git"
+	},
+	"keywords": [
+		"actions",
+		"github",
+		"slack"
+	],
+	"author": "Ken Matsui <26405363+ken-matsui@users.noreply.github.com>",
+	"license": "MIT",
+	"dependencies": {
+		"@actions/core": "^1.11.1",
+		"@actions/github": "^6.0.1",
+		"@slack/web-api": "^7.10.0",
+		"toml": "^3.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.2",
+		"@slack/types": "^2.16.0",
+		"@types/node": "^24.3.0",
+		"@vercel/ncc": "^0.38.3",
+		"js-yaml": "^4.1.0",
+		"typescript": "^5.9.2"
+	}
 }

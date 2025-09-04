@@ -29,9 +29,7 @@ function makeTicketStatusReminder(status: Status): string {
 }
 
 function detectEventType(payload: WebhookPayload): string {
-	return Object.prototype.hasOwnProperty.call(payload, "issue")
-		? "issue"
-		: "pull_request";
+	return Object.hasOwn(payload, "issue") ? "issue" : "pull_request";
 }
 
 function chooseColor(type: MessageType, payload: WebhookPayload): string {
@@ -152,9 +150,8 @@ export default class Slack {
 					comment.body,
 					extractImageURL(comment.body), // TODO: remove parsed image url from comment.body
 				];
-			} else {
-				return [event["html_url"], "", ""];
 			}
+			return [event["html_url"], "", ""];
 		})();
 
 		const prNumber = `#${event["number"]}`;

@@ -29,11 +29,11 @@
 		"toml": "^3.0.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.2.2",
+		"@biomejs/biome": "2.2.4",
 		"@slack/types": "^2.16.0",
-		"@types/node": "^24.3.0",
-		"@vercel/ncc": "^0.38.3",
+		"@types/node": "^24.6.1",
+		"@vercel/ncc": "^0.38.4",
 		"js-yaml": "^4.1.0",
-		"typescript": "^5.9.2"
+		"typescript": "^5.9.3"
 	}
 }

@@ -25,15 +25,15 @@
 	"dependencies": {
 		"@actions/core": "^1.11.1",
 		"@actions/github": "^6.0.1",
-		"@slack/web-api": "^7.12.0",
+		"@slack/web-api": "^7.13.0",
 		"toml": "^3.0.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.3.2",
-		"@slack/types": "^2.16.0",
-		"@types/node": "^24.9.2",
+		"@biomejs/biome": "2.3.8",
+		"@slack/types": "^2.19.0",
+		"@types/node": "^24.10.1",
 		"@vercel/ncc": "^0.38.4",
-		"js-yaml": "^4.1.0",
+		"js-yaml": "^4.1.1",
 		"typescript": "^5.9.3"
 	}
 }

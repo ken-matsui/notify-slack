@@ -23,7 +23,7 @@
 	"author": "Ken Matsui <26405363+ken-matsui@users.noreply.github.com>",
 	"license": "MIT",
 	"dependencies": {
-		"@actions/core": "^1.11.1",
+		"@actions/core": "^2.0.1",
 		"@actions/github": "^6.0.1",
 		"@slack/web-api": "^7.13.0",
 		"toml": "^3.0.0"

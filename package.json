@@ -29,7 +29,7 @@
 		"toml": "^3.0.0"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.3.8",
+		"@biomejs/biome": "2.3.10",
 		"@slack/types": "^2.19.0",
 		"@types/node": "^24.10.1",
 		"@vercel/ncc": "^0.38.4",

@@ -6,10 +6,10 @@
 	"type": "module",
 	"main": "lib/main.js",
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc --noEmit",
 		"format": "biome format --write src",
 		"check": "biome check src",
-		"package": "ncc build --source-map --license licenses.txt",
+		"package": "esbuild src/main.ts --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.js --sourcemap",
 		"all": "npm run build && npm run check && npm run package"
 	},
 	"repository": {
@@ -33,7 +33,7 @@
 		"@biomejs/biome": "2.4.13",
 		"@slack/types": "^2.19.0",
 		"@types/node": "^25.6.0",
-		"@vercel/ncc": "^0.38.4",
+		"esbuild": "^0.28.0",
 		"js-yaml": "^4.1.1",
 		"typescript": "^6.0.3"
 	}

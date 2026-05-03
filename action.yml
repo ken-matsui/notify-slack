@@ -6,7 +6,7 @@ inputs:
     required: true
     description: 'Slack OAuth Access Token'
 runs:
-  using: 'node12'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'at-sign'

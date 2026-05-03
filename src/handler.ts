@@ -1,8 +1,7 @@
 import * as core from "@actions/core";
-import type { WebhookPayload } from "@actions/github/lib/interfaces";
-import type Slack from "./slack";
-import type { Config } from "./types";
-import { extractUsersFromComment } from "./utils";
+import type Slack from "./slack.js";
+import type { Config, WebhookPayload } from "./types.js";
+import { extractUsersFromComment } from "./utils.js";
 
 async function handlePullRequestReviewRequestedAction(
 	payload: WebhookPayload,

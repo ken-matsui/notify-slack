@@ -1,10 +1,10 @@
+import * as fs from "node:fs";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import * as fs from "fs";
 import toml from "toml";
-import { type HandlerType, handlerList } from "./handler";
-import Slack from "./slack";
-import type { Config } from "./types";
+import { type HandlerType, handlerList } from "./handler.js";
+import Slack from "./slack.js";
+import type { Config } from "./types.js";
 
 const CONFIG_PATH = ".github/userlist.toml";
 

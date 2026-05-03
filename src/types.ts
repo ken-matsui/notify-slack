@@ -8,3 +8,5 @@ export type User = {
 };
 
 export type Extends<T, U extends T> = U;
+
+export type WebhookPayload = typeof import("@actions/github").context.payload;

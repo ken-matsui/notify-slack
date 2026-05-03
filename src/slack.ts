@@ -1,9 +1,8 @@
 import * as core from "@actions/core";
-import type { WebhookPayload } from "@actions/github/lib/interfaces";
 import type { MessageAttachment } from "@slack/types";
 import { WebClient } from "@slack/web-api";
-import type { Config, Extends } from "./types";
-import { getSlackUserId, toOxfordComma } from "./utils";
+import type { Config, Extends, WebhookPayload } from "./types.js";
+import { getSlackUserId, toOxfordComma } from "./utils.js";
 
 type MessageType =
 	| "mentionComment"
